@@ -1,0 +1,28 @@
+{
+ "name": "lambdateststatic",
+ "version": "1.0.0",
+ "description": "",
+ "main": "handler.js",
+ "dependencies": {
+  "body-parser": "^1.19.0",
+  "dotenv": "^8.2.0",
+  "express": "^4.17.1",
+  "express-oauth-login-system-server": "^1.0.5",
+  "express-restify-mongoose": "^6.1.2",
+  "jsonwebtoken": "^8.5.1",
+  "method-override": "^3.0.0",
+  "mongoose": "^5.11.17",
+  "serverless-http": "^2.7.0",
+  "serverless-offline": "^6.8.0",
+  "serverless-stack-output": "^0.2.3"
+ },
+ "devDependencies": {
+  "serverless-dotenv-plugin": "^3.8.1",
+  "serverless-secrets-plugin": "^0.1.0"
+ },
+ "scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1"
+ },
+ "author": "",
+ "license": "ISC"
+}

@@ -1,0 +1,61 @@
+service: teststatic
+
+useDotenv: true
+
+org: syntithenai
+app: mnemo
+
+package:
+  include:
+    - build/index.html
+    
+custom:
+  output:
+    file: ./stack.json
+  serverless-offline:
+    host: localhost       
+	# SSL for development
+	#  openssl genrsa 2048 > key.pem && openssl req -x509 -days 1000 -new -key key.pem -out cert.pem
+	# OR
+	# sudo certbot certonly --standalone -d domain.org -d domain.org
+    httpsProtocol: "certs"  # folder containing certificates
+    httpPort: 5000
+      
+provider:
+  name: aws
+  runtime: nodejs12.x
+  environment:
+    #: ${self:custom.secrets.MONGODB}
+    NODE_TLS_REJECT_UNAUTHORIZED: 1
+    LAMBDA_REST_GATEWAY_OFFLINE: https://localhost:5000/dev   # see custom.serverless-offline config
+    LAMBDA_REST_GATEWAY:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Ref: "ApiGatewayRestApi"
+          - ".execute-api.${opt:region, self:provider.region}.amazonaws.com/${opt:stage, self:provider.stage}"
+
+
+        
+functions:
+  login:
+    handler: handler.login
+    events:
+      - http:
+          path: /{pathvar+}
+          method: ANY
+
+plugins:
+  - serverless-offline
+  - serverless-stack-output
+  - serverless-dotenv-plugin
+
+outputs:
+  LAMBDARESTGATEWAYOFFLINE: https://localhost:5000/dev   # see custom.serverless-offline config
+  LAMBDARESTGATEWAY:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Ref: "ApiGatewayRestApi"
+          - ".execute-api.${opt:region, self:provider.region}.amazonaws.com/${opt:stage, self:provider.stage}"
+  
