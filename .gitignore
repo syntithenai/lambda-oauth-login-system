@@ -26,6 +26,4 @@ api/.env
 
 api/.serverless/
 
-client/.env
-
 api/stack.json
