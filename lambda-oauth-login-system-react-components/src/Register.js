@@ -2,7 +2,7 @@
 import {scrollToTop} from './helpers'  
 
 import React, { Component } from 'react';
-import {BrowserRouter as Router,Route,Link,Redirect} from 'react-router-dom'
+import {Link,Redirect} from 'react-router-dom'
 import {getCookie,getAxiosClient,  getParentPath} from './helpers'  
 
 var faker = require('faker');

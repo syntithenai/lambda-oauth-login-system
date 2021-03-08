@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  mongo:
+    image: mongo
+    name: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: localadmin
+      MONGO_INITDB_ROOT_PASSWORD: localadmin
+      MONGO_INITDB_DATABASE: loginsystem
+    volumes:
+        - ./mongo_data:/data/db
+        - ./mongo_init/create_user.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    ports:
+      - 27017:27017
+

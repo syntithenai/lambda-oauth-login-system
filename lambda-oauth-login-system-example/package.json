@@ -9,6 +9,7 @@
   "express": "^4.17.1",
   "express-oauth-login-system-server": "^1.0.5",
   "express-restify-mongoose": "^6.1.2",
+  "http": "0.0.1-security",
   "jsonwebtoken": "^8.5.1",
   "method-override": "^3.0.0",
   "mongoose": "^5.11.17"

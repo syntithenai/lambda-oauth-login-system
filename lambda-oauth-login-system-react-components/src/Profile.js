@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {FaSignOutAlt as LogoutButton} from 'react-icons/fa';
 import {FaSave as SaveButton} from 'react-icons/fa';
-import {BrowserRouter as Router,Route,Link,Redirect} from 'react-router-dom'
+import {Link,Redirect} from 'react-router-dom'
 import {scrollToTop} from './helpers'  
 import {getCookie,getAxiosClient,  getParentPath} from './helpers'  
 

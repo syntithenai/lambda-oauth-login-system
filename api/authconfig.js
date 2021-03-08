@@ -6,10 +6,14 @@
 require('dotenv').config()
 const fs = require('fs')
 
+// disable ssl checks for localhost
+if (process.env.IS_OFFLINE === 'true') {
+	process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+}
 //var path = require('path');
 
 function getGatewayUrl() {
-	if (!process.env.IS_OFFLINE) {
+	if (process.env.IS_OFFLINE !== 'true') {
 		return process.env.LAMBDA_REST_GATEWAY 
 	// offline mode
 	} else {
@@ -35,7 +39,7 @@ module.exports = {
     
    // ensure that your mongo database has a user with read/write access defined in the database that you want to use. DO NOT USE ROOT DB CREDENTIALS
    databaseConnection: process.env.IS_OFFLINE ? process.env.databaseConnection_OFFLINE : process.env.databaseConnection,
-   
+   allowedOrigins: process.env.allowedOrigins && process.env.allowedOrigins.trim() ? process.env.allowedOrigins : '',
    lambdaUrl:"/login",
    authServer: getGatewayUrl()+'/login/api',
   // oauth login callback

@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
 import './App.css';
-import LoginSystem from './LoginSystem' 
-import LoginSystemContext from './LoginSystemContext' 
-import {getAxiosClient,getMediaQueryString,getCsrfQueryString} from './helpers'
+//import LoginSystem from './LoginSystem' 
+//import LoginSystemContext from './LoginSystemContext' 
+//import {getAxiosClient,getMediaQueryString,getCsrfQueryString} from './helpers'
+
+import {LoginSystem,LoginSystemContext, getAxiosClient,getMediaQueryString,getCsrfQueryString} from 'lambda-oauth-login-system-react-components'
+
 
 import {HashRouter as Router, Route, Link} from 'react-router-dom'
 import 'bootstrap';

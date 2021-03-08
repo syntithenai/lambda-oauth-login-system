@@ -1,70 +1,102 @@
-# Getting Started with Create React App
+# Lambda Open Auth Login System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This repository provides a web based login system that can be deployed to AWS Lambda.
 
-## Available Scripts
+The login system provides a complete Open Auth system supporting social login.
 
-In the project directory, you can run:
+The system relies on a mongo database to persist user and token data.
 
-### `npm start`
+The system delivers JWT tokens for authentication without a call back to the central service.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Included are
+- react component package
+- client folder which is the web UI
+- api folder containing serverless deployment artifacts and api routes for login and open auth.
+- example independant serverless app/service integrating login system on a different domain (cross window messaging)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+## Quickstart Localhost
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prep - Start Mongo
+To start a mongo database using docker
+```
+cd mongo
+docker-compose up
+```
+The docker-compose suite includes an init script to create a loginsystem user.
+If you are using another approach to starting mongo you will need to create the user
+```
+db.createUser({
+  user: 'loginsystem',
+  pwd: 'loginsystem',
+  roles: [
+    {
+      role: 'readWrite',
+      db: 'loginsystem'
+    },
+    {
+      role: 'dbAdmin',
+      db: 'loginsystem'
+    },
+  ]
+})
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Prep: Sendgrid
 
-### `npm run eject`
+Head over to sendgrid.com and sign up for a free account.
+Create a validated user and an api key.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Start a local webserver
+```
+cd api
+# copy .env.sample to .env and update configuration. databaseConnection string and sendgrid api key are required
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+sls offline
+# open https://localhost:5000/dev/login in your browser
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+To update the UI 
+```
+cd client
+npm run build
+```
 
-## Learn More
+To deploy to AWS  (assuming you have aws credentials configured with appropriate permissions)
+```
+cd api
+sls deploy
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Integration 
 
-### Code Splitting
+1. The easiest way to create a web application that uses the login system is to use this repository as a template for your app and make 
+your changes to the client and api handler. 
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+In this case you have access to the properties provided by the LoginSystemContext including
+- user  data (including token)
+- helpers including getAxiosClient (to add auth headers), getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout
 
-### Analyzing the Bundle Size
+Note that the HashRouter is required to work as a single lambda endpoint.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-### Making a Progressive Web App
+2. The custom web application runs independantly on a different port and uses serverless outputs to make the lambda gateway url available from the login system.
+This approach guarantees the login system is independant of any software changes to the main application.
+It can also be used to provide unified login across a collection of domains.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+To make the login work cross domain, popup windows are used for openauth flows and login refresh.
 
-### Advanced Configuration
+The login system is configured with allowedOrigins which is used for CORS headers and restrictions on the 
+window postMessage used to pass the login token back to the main window.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+In this case you can import the ExternalLogin component which provides
+- user  data (including token)
+- doLogin, doProfile, doLogout (using popup windows)
+- helpers including getAxiosClient (to add auth headers), getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout
 
-### Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
