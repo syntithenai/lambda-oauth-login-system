@@ -40,20 +40,20 @@ export default  class LoginSystemContext extends Component {
         })
         
         function receiveMessage(event) {
-             //console.log(["frame MESSAGE", JSON.stringify(event.data), event, event.origin,that.state.allowedOrigins, event.source])
+             console.log(["frame MESSAGE", JSON.stringify(event.data), event, event.origin,that.state.allowedOrigins, event.source])
              
              // only handle messages if allowedOrigins is set and message comes from an allowedOrigin  
              if (that.state.allowedOrigins && that.state.allowedOrigins.indexOf(event.origin) !== -1) {  
                 // poll login status
                 if (event.data && event.data.check_login) {
                     // send null unless token AND user are loaded
-                    //console.log(["return frame MESSAGE",{user:that.state.user && that.state.user.token ? that.state.user : null},event.origin])
+                    console.log(["return frame MESSAGE",{user:that.state.user && that.state.user.token ? that.state.user : null},event.origin])
                     event.source.postMessage({user:that.state.user && that.state.user.token && that.state.user.username && that.state.user.username.trim() ? that.state.user : null},event.origin)
                 // close window when location changes from an allowedPage
                 }
                 if (event.data && event.data.allowedPages && Array.isArray(event.data.allowedPages)) {
                     var parts = window.location.href ? window.location.href.split("/") : []
-                    //console.log(["close win ?"])
+                    console.log(["close win ?"])
                     if (event.data.allowedPages.indexOf(parts[parts.length -1]) === -1) {
                         //setTimeout(function() {
                             window.close()

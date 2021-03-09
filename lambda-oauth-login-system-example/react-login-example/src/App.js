@@ -1,5 +1,5 @@
 import React from 'react';
-import {useState, useEffect} from 'react';
+//import {useState, useEffect} from 'react';
 import {HashRouter as  Router, Route, Link  } from 'react-router-dom'
 //import NavbarComponent from './components/NavbarComponent'
 //import {ExternalLogin}  from 'react-express-oauth-login-system-components'
@@ -18,16 +18,17 @@ function App() {
 		if (process.env.REACT_APP_LOGIN && process.env.REACT_APP_LOGIN.trim()) {
 			loginUrl = new URL(process.env.REACT_APP_LOGIN)
 		}
-		var loginServerHostname = loginUrl ? loginUrl.origin : ''
-		var loginServerPath = loginUrl ? loginUrl.pathname + '/api' : ''
-		var authWeb = loginUrl ? loginUrl.pathname  : ''
-		console.log(['ffffff',loginUrl,loginServerHostname,loginServerPath, authWeb])
-	  
+		//var loginServerHostname = loginUrl ? loginUrl.origin : ''
+		//var loginServerPath = loginUrl ? loginUrl.pathname + '/api' : ''
+		//var authWeb = loginUrl ? loginUrl.pathname  : ''
+		console.log(['ffffff',loginUrl])
+	  //authServer={loginServerPath} 
+					//authServerHostname={loginServerHostname} 
+					//authWeb={authWeb}
 	  return (
 		 <ExternalLogin  
-					authServer={loginServerPath} 
-					authServerHostname={loginServerHostname} 
-					authWeb={authWeb}
+				loginServer={(process.env.REACT_APP_LOGIN && process.env.REACT_APP_LOGIN.trim()) ? process.env.REACT_APP_LOGIN : window.loginServer}
+					
 				>{(user,setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, doLogout, doLogin, doProfile,  authServer, authServerHostname) => {  
 						 return  <React.Fragment>
 					  <NavbarComponent user={user} doLogin={doLogin} doLogout={doLogout} doProfile={doProfile} isLoggedIn={isLoggedIn}   />
