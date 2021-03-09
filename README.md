@@ -2,14 +2,14 @@
 
 This repository provides a web based login system that can be deployed to AWS Lambda.
 
-The login system provides a complete Open Auth system supporting social login.
+The login system provides a complete Open Auth implementation supporting social login.
 
 The system relies on a mongo database to persist user and token data.
 
 The system delivers JWT tokens for authentication without a call back to the central service.
 
 Included are
-- react package with components for the login system and using the login system from another domain.
+- react package with components for using the login system.
 - client folder which is the web UI
 - api folder containing serverless deployment artifacts and api routes for login and open auth.
 - example independant serverless app/service integrating login system on a different domain (cross window messaging)
@@ -19,7 +19,9 @@ Included are
 
 ## Quickstart Localhost
 
-### Prep - Start Mongo
+### Preparation
+
+####  Start Mongo
 To start a mongo database using docker
 ```
 cd mongo
@@ -45,7 +47,7 @@ db.createUser({
 
 ```
 
-### Prep: Sendgrid
+#### Sendgrid
 
 Head over to sendgrid.com and sign up for a free account.
 Create a validated user and an api key.
@@ -60,13 +62,13 @@ sls offline
 # open https://localhost:5000/dev/login in your browser
 ```
 
-To update the UI 
+### Update the login system web pages 
 ```
 cd client
 npm run build
 ```
 
-To deploy to AWS  (assuming you have aws credentials configured with appropriate permissions)
+### Deploy to AWS  (assuming you have aws credentials configured with appropriate permissions)
 ```
 cd api
 sls deploy
@@ -74,6 +76,30 @@ sls deploy
 
 
 ## Integration 
+
+### Option 1 - Standalone Cross Domain
+
+Deploy the login system as a standalone serverless app providing configuration of allowedOrigins for all the clients of the login system.
+
+This approach guarantees the login system is independant of any software changes to the client application.
+
+It can also be used to provide unified login across a collection of domains.
+
+Web app clients that use the login system can import the ```ExternalLogin``` component from ```express-oauth-login-system-components``` and specify the property ```loginServer```
+
+The ExternalLogin components uses popups for login/oauth flows and an iframe to poll login status using cross domain postMessage.
+
+The ExternalLogin component provides properties to it's children including
+- user  data (including token)
+- doLogin, doProfile, doLogout (using popup windows)
+- helpers including getAxiosClient (to add auth headers), getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout
+
+When the login system is deployed, the serverless output LAMBDARESTGATEWAY is set to the url of the Lambda REST gateway. This information is also written to stack.json.
+
+
+
+### Option 2 - Integrated Same Domain
+
 
 1. The easiest way to create a web application that uses the login system is to use this repository as a template for your app and make 
 your changes to the client and api handler. 
@@ -86,8 +112,7 @@ Note that the HashRouter is required to work as a single lambda endpoint.
 
 
 2. The custom web application runs independantly as a different lambda function or even as a seperate service on a different port and uses serverless outputs to make the lambda gateway url available from the login system.
-This approach guarantees the login system is independant of any software changes to the main application.
-It can also be used to provide unified login across a collection of domains.
+
 
 The REST url for the login system is also written to stack.json when the application is deployed. 
 This can be useful to dynamically provide the login url to a custom web application is served from somewhere else, 
