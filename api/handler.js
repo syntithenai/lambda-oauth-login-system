@@ -15,13 +15,13 @@ const app = express()
 app.use(bodyParser.json())
 app.use(methodOverride())
 
-
+var template = ''
 
 
 //mongoose.connect('mongodb://mnemo:mnemo@localhost:27017/mnemo')
 
 
-var router = express.Router();
+//var router = express.Router();
 //restify.serve(router, mongoose.model('User', new mongoose.Schema({
   //name: { type: String, required: true },
   //avatar: { type: String }
@@ -60,15 +60,17 @@ var router = express.Router();
 //})
 	 
 module.exports.login =  async (event, context) => {
-	// todo write to /tmp
-	var template = String(fs.readFileSync(path.join(__dirname,'./build', 'index.html')))
-	var pre = template.slice(0,400).replace('###MARKER_authServer###',config.authServer).replace('###MARKER_allowedOrigins###',config.allowedOrigins)
-	template = pre + template.slice(400)
 	const login = loginSystem(config)
 	const loginRouter = login.router
 	const authenticate = login.authenticate
 	app.use(config.lambdaUrl + '/api/',loginRouter)
 	app.use(config.lambdaUrl + '/',function (req,res) {
+		if (!template.trim()) {
+			console.log('REPOLACE MARKERS')
+			template = String(fs.readFileSync(path.join(__dirname,'./build', 'index.html')))
+			var pre = template.slice(0,400).replace('###MARKER_authServer###',config.authServer).replace('###MARKER_allowedOrigins###',config.allowedOrigins)
+			template = pre + template.slice(400)		
+		}
 		res.send( template);
     });
 

@@ -49,17 +49,22 @@ export default  class LoginSystemContext extends Component {
                     // send null unless token AND user are loaded
                     console.log(["return frame MESSAGE",{user:that.state.user && that.state.user.token ? that.state.user : null},event.origin])
                     event.source.postMessage({user:that.state.user && that.state.user.token && that.state.user.username && that.state.user.username.trim() ? that.state.user : null},event.origin)
-                // close window when location changes from an allowedPage
                 }
+                // close window when location changes from an allowedPage
                 if (event.data && event.data.allowedPages && Array.isArray(event.data.allowedPages)) {
                     var parts = window.location.href ? window.location.href.split("/") : []
                     console.log(["close win ?"])
                     if (event.data.allowedPages.indexOf(parts[parts.length -1]) === -1) {
-                        //setTimeout(function() {
-                            window.close()
-                        //},2000)
+                           window.close()
                     }
                 
+                }
+                // logout message
+                if (event.data && event.data.logout) {
+                    // send null unless token AND user are loaded
+                    console.log(["return frame logout MESSAGE",{user:that.state.user && that.state.user.token ? that.state.user : null},event.origin])
+                    this.logout(this.state.user.access_token)
+                    event.source.postMessage({user: null},event.origin)
                 }
             }
         }

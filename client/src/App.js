@@ -54,6 +54,8 @@ class App extends Component {
                                        location={props.location}
                                        history={props.history}
                                        authServer={authServer} 
+                                       // where login pages used in seperate window, show a close button
+                                       showCloseButton={true}
                                         // also need external link to auth server (combind authServerHostname + authServer) for google, github, .. login buttons
                                        authServerHostname={authServerHostname} 
                                        logoutRedirect={'/'}

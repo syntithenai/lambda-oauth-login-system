@@ -50,7 +50,8 @@ export default  class LoginSystem extends Component {
             useRefreshToken: this.props.useRefreshToken,
             loadUser: this.props.loadUser,
             logoutRedirect : this.props.logoutRedirect,
-            allowedOrigins: this.props.allowedOrigins
+            allowedOrigins: this.props.allowedOrigins,
+            showCloseButton: this.props.showCloseButton
         };
         if (this.state.authRequest) {
 			return <div className='pending-auth-request' ><Link to={`${that.props.match.url}/auth`} className='btn btn-success'  >Pending Authentication Request</Link></div>

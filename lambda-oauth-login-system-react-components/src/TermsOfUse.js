@@ -1,14 +1,14 @@
 
 import React, { Component } from 'react';
+import {Link} from 'react-router-dom'
 
 export default class TermsOfUse extends Component {
     
     render() {
-        var standalone = (this.props.allowedOrigins && this.props.allowedOrigins.length > 0) ? true : false
         return  (
          <div>
-                {standalone && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
-                 Close</button>}
+            <Link to="/register"><button className='btn btn-success' style={{float:'right', marginLeft:'3em'}} >
+                 Register</button></Link>
          <div style={{textAlign:'center'}}>
          <h2>Terms of Use/Privacy Policy</h2>
          </div>

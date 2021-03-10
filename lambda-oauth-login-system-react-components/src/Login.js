@@ -56,24 +56,21 @@ export default  class Login extends Component {
             {title}
             </a></span>                         
 		 });
-		   if (that.props.isRoot) {
-               parentPath = that.props.history.location.pathname && that.props.history.location.pathname !== "/" ? that.props.history.location.pathname : ''
-            } else {
-                var pathParts = that.props.history.location.pathname.split("/")
-                var parentPath = pathParts.slice(0,pathParts.length-1).join("/")
-            }
+		  
            return <div> 
        
-                 
-         {(!standalone && this.props.isLoggedIn()) && <Link to={parentPath+'/profile'} style={{clear:'both',display:'inline'}} >
+           {this.props.showCloseButton && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
+                 Close</button>}
+                        
+         {(!this.props.showCloseButton && this.props.isLoggedIn()) && <Link to={'/profile'} style={{clear:'both',display:'inline'}} >
              <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Profile</div>
         </Link>}
          
-         <Link to={parentPath+'/forgot'} style={{clear:'both',display:'inline'}} >
+         <Link to={'/forgot'} style={{clear:'both',display:'inline'}} >
          <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</div>
          </Link>
          
-         <Link to={parentPath+'/register'} style={{clear:'both',display:'inline'}} >
+         <Link to={'/register'} style={{clear:'both',display:'inline'}} >
          <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div>
          </Link>
           <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Sign in</h1>

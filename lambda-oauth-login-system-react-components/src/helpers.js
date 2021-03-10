@@ -39,12 +39,10 @@ function scrollToTop() {
             // skip leading slash
             parentPath = "/"+pathParts.slice(1,pathParts.length-1).join("/")
         }
-        //console.log(['PP',parentPath])
         return parentPath
     } 
 
 function getAxiosClient(accessToken)	{
-	//console.log(['get axios client ',accessToken])
 	let axiosOptions={httpsAgent: new https.Agent({  
         rejectUnauthorized: false
     })};
@@ -56,7 +54,6 @@ function getAxiosClient(accessToken)	{
 		// add auth headers 
 	}
     if (accessToken && accessToken.length > 0)  {
-     //   axiosOptions.headers['Authorization'] = 'Bearer '+accessToken
         axios.defaults.headers.common['Authorization'] = 'Bearer '+accessToken;
     }
 	return axios.create(axiosOptions);

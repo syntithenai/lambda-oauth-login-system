@@ -63,19 +63,15 @@ export default  class ForgotPassword extends Component {
     };
   
   
-     
+// 
     render() {
         let that = this
-        var standalone = (this.props.allowedOrigins && this.props.allowedOrigins.length > 0) ? true : false
-        var pathParts = that.props.history.location.pathname.split("/")
-        var parentPath = pathParts.slice(0,pathParts.length-1).join("/")
            return  <div>
-                {standalone && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
-                 Close</button>}
+			{this.props.showCloseButton && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}> Close</button>}     
          
-         <Link to={parentPath+"/register"} style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div></Link>
+         <Link to={"/register"} style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div></Link>
          
-         <Link to={parentPath+"/login"} style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</div></Link>
+         <Link to={"/login"} style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</div></Link>
           
         
            <form className="form-signin" onSubmit={(e) => {e.preventDefault(); this.recoverPassword(this.state.email,this.state.password,this.state.password2); return false} }>

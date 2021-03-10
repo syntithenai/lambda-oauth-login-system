@@ -21,6 +21,12 @@ Included are
 
 ### Preparation
 
+#### Sendgrid
+
+Head over to sendgrid.com and sign up for a free account.
+Create a validated user and an api key.
+
+
 ####  Start Mongo
 To start a mongo database using docker
 ```
@@ -47,20 +53,29 @@ db.createUser({
 
 ```
 
-#### Sendgrid
 
-Head over to sendgrid.com and sign up for a free account.
-Create a validated user and an api key.
 
+### Update required configuration
+
+Copy .env.sample to .env
+
+Edit .env to update configuration. databaseConnection string and sendgrid api key are required.
+
+If you are using client apps served from a different domain, you will need to provide allowedOrigins.
+
+- CORS headers are added to restrict api access to allowedOrigins.
+- Messages sent via postMessage must come from a domain included in allowedOrigins.
 
 ### Start a local webserver
+
 ```
 cd api
-# copy .env.sample to .env and update configuration. databaseConnection string and sendgrid api key are required
-
 sls offline
-# open https://localhost:5000/dev/login in your browser
 ```
+
+When the offline server has started, open https://localhost:5000/dev/login in your browser
+
+
 
 ### Update the login system web pages 
 ```
@@ -85,50 +100,57 @@ This approach guarantees the login system is independant of any software changes
 
 It can also be used to provide unified login across a collection of domains.
 
-Web app clients that use the login system can import the ```ExternalLogin``` component from ```express-oauth-login-system-components``` and specify the property ```loginServer```
+When the login system is deployed, the serverless output LAMBDARESTGATEWAY is set to the public URL of the login system. This information is also written to stack.json.
 
-The ExternalLogin components uses popups for login/oauth flows and an iframe to poll login status using cross domain postMessage.
+Web app clients that use the login system can import the ```ExternalLogin``` component from the npm package ```lambda-oauth-login-react-system-components``` and specify the property ```loginServer```
+
+The ExternalLogin components uses cross domain postMessages to popup windows for login/oauth flows and an iframe for polling login status.
 
 The ExternalLogin component provides properties to it's children including
 - user  data (including token)
 - doLogin, doProfile, doLogout (using popup windows)
 - helpers including getAxiosClient (to add auth headers), getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout
 
-When the login system is deployed, the serverless output LAMBDARESTGATEWAY is set to the url of the Lambda REST gateway. This information is also written to stack.json.
 
+#### Example
+
+See the lambda-oauth-login-system-example for sample code.
+
+To trial the sample application, first ensure that the login system offline server has been started (on port 5000)
+```
+cd lambda-oauth-login-system-example
+sls offline
+```
+The sample application will be available at http://localhost:5001/dev/handler
+
+The example detects the URL for the login system from the serverless output LAMBDARESTGATEWAY 
+The handler function uses this value to replace markers in the statically built example react app.
+
+#### Custom React App
+
+Where using the login from outside the serverless context (eg a static react app hosted on github pages), you can provide the loginServer url using
+the environment variable REACT_APP_LOGIN in the react build environment.
 
 
 ### Option 2 - Integrated Same Domain
 
-
-1. The easiest way to create a web application that uses the login system is to use this repository as a template for your app and make 
-your changes to the client and api handler. 
+1. Include the ```express-oauth-login-system-server``` routes into your application. See api/handler.js
+2. Import and use the ```LoginSystem```, ```LoginSystemContext``` and other components from the npm package ```lambda-oauth-login-system-components```
 
 In this case you have access to the properties provided by the LoginSystemContext including
 - user  data (including token)
 - helpers including getAxiosClient (to add auth headers), getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout
 
-Note that the HashRouter is required to work as a single lambda endpoint.
+Note that the HashRouter is required to make a react app work as a single lambda endpoint.
+
+With the current handler it is also necessary to use gulp to wrap the client code into a single index.html. 
+An expanded handler could deal with serving an unbundled file system but would incur the cost of additional calls to the lambda function.
+
+In a production setting, the client code should be deployed into a Content Delivery Network like AWS S3  or Github Pages and use a proxy or AWS Cloudfront to bring it together with the api 
+under the same domain name. For more detail see https://www.serverless.com/plugins/fullstack-serverless
 
 
-2. The custom web application runs independantly as a different lambda function or even as a seperate service on a different port and uses serverless outputs to make the lambda gateway url available from the login system.
-
-
-The REST url for the login system is also written to stack.json when the application is deployed. 
-This can be useful to dynamically provide the login url to a custom web application is served from somewhere else, 
-
-To make the login work cross domain, popup windows are used for openauth flows and login refresh.
-
-The login system is configured with allowedOrigins which is used for restrictions on the 
-window postMessage used to pass the login token back to the main window.
-
-In this case you can import the ExternalLogin component which provides
-- user  data (including token)
-- doLogin, doProfile, doLogout (using popup windows)
-- helpers including getAxiosClient (to add auth headers), getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout
-
-
-# Social Login
+## Social Login
 When creating keys and secrets for the various social login services, it is required to set one or many authorized redirects which are 
 set to the rest url of the lambda function plus a subpath to the callback.
 See the .env file for links to get keys for the social services.
@@ -137,3 +159,18 @@ eg ```https://ki3hmdq3uh.execute-api.us-east-1.amazonaws.com/dev/login/api/googl
 
 or for localhost
 ```https://localhost:5000/dev/login/api/googlecallback```
+
+
+## Authenticated Endpoints
+
+In your client application, you will want to restrict access to some api endpoints based on user login.
+
+Because the access token is a JWT token, any service with the crypto keys can decode and identify a user.
+
+To support this in your api routes, 
+- ```npm i express-oauth-login-system-server```
+- in your lambda function
+```
+import 
+```
+
