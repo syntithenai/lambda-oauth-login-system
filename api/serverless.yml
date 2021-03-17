@@ -1,10 +1,13 @@
+# primary key for this service in serverless ecosystem
 service: loginsystem
 
 useDotenv: true
 
+# organise in serverless dashboard
 org: syntithenai
 app: loginsystem
 
+# package the web build to be served via lambda function
 package:
   include:
     - build/index.html

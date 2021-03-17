@@ -7,18 +7,22 @@ export default class RegistrationConfirmation extends Component {
         let that = this
                       
       setTimeout(function() {
-        if (this.props.showCloseButton) window.close()
+        if (that.props.showCloseButton) window.close()
       },8000)   
     }
     
     render() {
 		 return  (
         <div className="registrationconfirmation" style={{textAlign:'left'}} >
-			<h3>Thanks for Registering</h3>
+			  {window.opener && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
+                         Close</button>}
+            <h3>Thanks for Registering</h3>
 			
 			<div>
-			To finish creating your account, check your email and open the confirmation link.
+			To finish creating your account, check your email and open the confirmation link. 
+			<br/><br/>If the email confirming your registration doesn't arrive, please check your SPAM folder.
 			</div>
+			
         </div>
 )
 

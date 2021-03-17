@@ -30,14 +30,14 @@ export default  class OAuth extends Component {
     
     componentDidUpdate() {
         if (!this.props.isLoggedIn()) {
-           this.props.history.push("../login");
+           this.props.history.push(this.props.linkBase + "/login");
        }
     };
   
     componentDidMount() {
 		let that = this;
         if (!this.props.isLoggedIn()) {
-           this.props.history.push("../login");
+           this.props.history.push(this.props.linkBase + "/login");
        } else {
 			// extract request info
 			let params = this.props.location.search ? this.props.location.search.slice(1).split("&") : [];
@@ -53,7 +53,7 @@ export default  class OAuth extends Component {
 				let authRequest={client_id:paramsObject.client_id,redirect_uri:paramsObject.redirect_uri,response_type:paramsObject.response_type,scope:paramsObject.scope,state:paramsObject.state}
 				// lookup oauth client extra label info
 				 if (that.props.startWaiting) that.props.startWaiting();
-				 fetch(that.props.authServerHostname + that.props.authServer+'/oauthclient?clientId='+paramsObject.client_id, {
+				 fetch(that.props.loginServer+'/api/oauthclient?clientId='+paramsObject.client_id, {
 					  method: 'GET',
 					  headers: {
 						'Content-Type': 'application/json',
@@ -73,7 +73,6 @@ export default  class OAuth extends Component {
 							authRequest.website_url = data.website_url;
 							authRequest.privacy_url = data.privacy_url;
 							authRequest.user = that.props.user ? that.props.user.username : '';
-							//console.log(['SET AUTH REQ',authRequest])
 							localStorage.setItem('auth_request',JSON.stringify(authRequest))
 							that.setState({authRequest: authRequest});
 							// request captured, now redirect to login
@@ -139,7 +138,7 @@ export default  class OAuth extends Component {
 				<li>Interact with this website on your behalf</li>
 			</ul>
 						
-			<form  style={{width:'100%'}}  action={that.props.authServerHostname + this.props.authServer+'/authorize'} method="POST">
+			<form  style={{width:'100%'}}  action={that.props.loginServer+'/api/authorize'} method="POST">
 			<input type='hidden' name='response_type'  value={this.state.authRequest.response_type} />
 			<input type='hidden' name='client_id'  value={this.state.authRequest.client_id}/>
 			<input type='hidden' name='client_secret'  value={this.state.authRequest.client_secret}/>

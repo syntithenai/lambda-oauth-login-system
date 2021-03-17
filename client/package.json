@@ -5,7 +5,7 @@
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
-    "@testing-library/user-event": "^12.8.1",
+    "@testing-library/user-event": "^12.8.3",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "faker": "^5.4.0",
@@ -14,7 +14,7 @@
     "gulp-replace": "^1.0.0",
     "https": "^1.0.0",
     "jquery": "^3.6.0",
-    "lambda-oauth-login-system-react-components": "^1.0.1",
+    "lambda-oauth-login-system-react-components": "^1.0.5",
     "md5": "^2.3.0",
     "popper.js": "^1.16.1",
     "react": "^17.0.1",
@@ -22,7 +22,7 @@
     "react-icons": "^4.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
-    "web-vitals": "^1.1.0"
+    "web-vitals": "^1.1.1"
   },
   "scripts": {
     "start": "react-scripts start",

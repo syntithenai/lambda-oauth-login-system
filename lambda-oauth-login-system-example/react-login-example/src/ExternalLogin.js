@@ -98,6 +98,7 @@ export default class ExternalLogin   extends Component {
     }
     
     doLogout() {
+		let that = this
 		var origin = new URL(that.props.loginServer).origin
 		this.myFrame.src=that.props.loginServer + '#logout'
 		this.setUser(null)
@@ -131,10 +132,9 @@ export default class ExternalLogin   extends Component {
 	}     
   
     render(props) {
-		var theUrl = new URL(this.props.loginServer)
-	  
+	 
       return <div>
-      {this.props.children(this.state.user,this.setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString,this.isLoggedIn, this.loadUser,this.doLogout, this.doLogin, this.doProfile,theUrl.path, theUrl.origin)}
+      {this.props.children(this.state.user,this.setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString,this.isLoggedIn, this.loadUser,this.doLogout, this.doLogin, this.doProfile, this.props.loginServer)}
       
       </div>
     }

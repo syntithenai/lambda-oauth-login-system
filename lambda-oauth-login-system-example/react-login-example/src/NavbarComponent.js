@@ -9,12 +9,12 @@ export default function NavbarComponent(props) {
             <React.Fragment>
 				{props.isLoggedIn() && 
 					<span>
-						<Link to="/profile" ><Button style={{float:'right'}} variant="primary"  >{'Profile'}</Button></Link>
-						<Link to="/" ><Button  style={{float:'right'}} variant="danger" onClick={props.doLogout}  >{'Logout'}</Button></Link>
+						<Link to="/login/profile" ><Button style={{float:'right'}} variant="primary"  >{'Profile'}</Button></Link>
+						<Link to="/login/logout" ><Button  style={{float:'right'}} variant="danger"  >{'Logout'}</Button></Link>
 					</span>
 				}
 				{ !props.isLoggedIn() && 
-					<Link to="/profile" ><Button  style={{float:'right'}}  variant="success" onClick={props.doLogin} >{'Login'}</Button></Link>
+					<Link to="/login/login" ><Button  style={{float:'right'}}  variant="success"  >{'Login'}</Button></Link>
 				}
 			</React.Fragment>
 		

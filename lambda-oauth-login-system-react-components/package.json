@@ -1,6 +1,6 @@
 {
   "name": "lambda-oauth-login-system-react-components",
-  "version": "1.0.1",
+  "version": "1.0.6",
   "description": "Made with create-react-library",
   "author": "syntithenai",
   "license": "MIT",
@@ -53,6 +53,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
+    "faker": "^5.4.0",
     "https": "^1.0.0",
     "md5": "^2.3.0",
     "react-icons": "^4.2.0",

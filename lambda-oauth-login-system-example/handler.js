@@ -86,32 +86,25 @@ function getLoginGatewayUrl() {
 		//}
 	//}		
 //})
+	
+	
+var template = ''
 	 
 module.exports.handler =  async (event, context) => {
 	
-	
 	app.use('/handler/api/',function(req,res) {res.json({API:""})} )
 	
-	// todo write to /tmp
-	var template = ''
-	// use prebuilt template if available otherwise proxy to create-react-app dev server
-	if ( fs.existsSync(path.join(__dirname,'./react-login-example/build', 'index.html'))) {
-		template = String(fs.readFileSync(path.join(__dirname,'./react-login-example/build', 'index.html')))
-	} else {
-		
-	}
-	var loginLambdaUrl = getLoginGatewayUrl() + "/login"
-	var lambdaUrl = getGatewayUrl() + "/handler"
-	// run example with npm start for live updates on save
-	
-	
-	console.log([loginLambdaUrl,lambdaUrl])
-	var pre = template.slice(0,400).replace('###MARKER_apiServer###',lambdaUrl).replace('###MARKER_loginServer###',loginLambdaUrl)
-	template = pre + template.slice(400)
-	//const login = loginSystem(config)
-	//const loginRouter = login.router
-	//const authenticate = login.authenticate
 	app.use('/handler/',function (req,res) {
+		
+		if (!template.trim()) {
+			var loginLambdaUrl = getLoginGatewayUrl() 
+			loginLambdaUrl = loginLambdaUrl && loginLambdaUrl.trim() ? loginLambdaUrl+ "/login" : ''
+			var lambdaUrl = getGatewayUrl() + "/handler"
+			lambdaUrl = lambdaUrl && lambdaUrl.trim() ? lambdaUrl+ "/handler" : ''
+			template = String(fs.readFileSync(path.join(__dirname,'./react-login-example/build', 'index.html')))
+			var pre = template.slice(0,400).replace('###MARKER_apiServer###',lambdaUrl).replace('###MARKER_loginServer###',loginLambdaUrl)
+			template = pre + template.slice(400)		
+		}
 		res.send( template);
     });
 

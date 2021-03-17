@@ -5,10 +5,12 @@ export default class ExternalLogin   extends Component {
   
    constructor(props) {
         super(props)
-        this.state = {user:null, checkLoginIframe: null}
-        this.loginPopup = null
+        this.state = {user:null, checkLoginIframe: null, redirect: null}
+        //this.loginPopup = null
         this.pollLoginTimeout = null
         this.pollCloseTimeout = null
+        this.pollAuthSuccessTimeout = null
+        this.pollAuthSuccess = this.pollAuthSuccess.bind(this)
         this.receiveMessage = this.receiveMessage.bind(this)
         this.pollShouldClose = this.pollShouldClose.bind(this)
         this.checkIsLoggedIn = this.checkIsLoggedIn.bind(this)
@@ -19,12 +21,26 @@ export default class ExternalLogin   extends Component {
         this.isLoggedIn = this.isLoggedIn.bind(this)
         this.loadUser = this.loadUser.bind(this)
         this.setUser = this.setUser.bind(this)
+        this.setIframeUser = this.setIframeUser.bind(this)
+        this.receiveMessage = this.receiveMessage.bind(this)
         this.myFrame = null
     }
     
     setUser(user) {
+		
         this.setState({user:user})
+        
     }
+    
+    setIframeUser(user) {
+		if (this.isLoggedIn()) {
+			// notify iframe to refresh login
+			if (this.myFrame && this.myFrame.contentWindow) this.myFrame.contentWindow.postMessage({refresh_login: user},event.origin)
+		} else {
+			// logout in frame
+			if (this.myFrame && this.myFrame.contentWindow) this.myFrame.contentWindow.postMessage({logout: true},event.origin)
+		}
+	}
    
     
     componentDidMount(props) {
@@ -34,14 +50,36 @@ export default class ExternalLogin   extends Component {
      }
     
      receiveMessage(event) {
+		 //console.log(['ExternalLogin MESSAGE',event.data])
+		 let that = this
         var origin = new URL(this.props.loginServer).origin
-        if (event.origin === origin) {
-            this.setUser(event.data.user)
-            if (this.loginPopup) this.loginPopup.close()
-        }
+		if (event.origin === origin) {
+			if (event.data && event.data.oauth_success) {
+				that.setUser(event.data.oauth_success)
+				that.setIframeUser(event.data.oauth_success)
+				// stop oauth polling
+				if (this.pollAuthSuccessTimeout) clearTimeout(this.pollAuthSuccessTimeout)
+				window.location.hash = "#" + this.props.loginRedirect
+			} else {
+				this.setUser(event.data.user)	
+			}
+		}
      }
-   
-    // open a window to check login and keep polling for login status updates
+     
+     // polling for login status updates
+     pollAuthSuccess(popup) {
+		let that = this
+		if (this.pollAuthSuccessTimeout) clearTimeout(this.pollAuthSuccessTimeout)
+        this.pollAuthSuccessTimeout = setTimeout(function() {
+		    if (popup && !popup.closed) {
+		    	var origin = new URL(that.props.loginServer).origin
+                popup.postMessage({poll_oauth_success:true}, origin);
+                that.pollAuthSuccess(popup)
+            }
+        },1000)
+    }
+    // poll a window to check if it's path is in a list of allowed pages or close the window
+    // used with external standalone login 
      pollShouldClose(popup, allowedPages) {
         let that = this
         if (this.pollTimeout) clearTimeout(this.pollTimeout)
@@ -55,52 +93,56 @@ export default class ExternalLogin   extends Component {
     }
     // open a window to check login then close it when it responds
      checkIsLoggedIn(popup, count = 0) {
-         if (!this.isLoggedIn()) {
-			let that = this
+		 let that = this
+		 if (!this.isLoggedIn()) {
 			if (this.pollLoginTimeout) clearTimeout(this.pollLoginTimeout)
 			this.pollLoginTimeout = setTimeout(function() {
-				if (popup && count < 10) {
+				if (popup) { //&& count < 10) {
 					var origin = new URL(that.props.loginServer).origin
 					popup.postMessage({check_login:true}, origin);
 					that.checkIsLoggedIn(popup, count+1)
 				}
-			},1000)
+			},2000)
 		}
     }
 
 	createLoginIframe() {
 		let that = this
-		if (this.myFrame === null) {
-			var url = this.props.loginServer + "#blank"
-			var i = document.createElement('iframe');
-			this.myFrame = i
-			i.style.display = 'none'; 
-			i.src = url
-			i.onload = function() {
-			  var popup = i.contentWindow;
-			  that.checkIsLoggedIn(popup)
-			  setInterval(function(popup) {that.checkIsLoggedIn(popup)},5000)
-			}
-			document.body.appendChild(i);
+		if (this.myFrame !== null) {
+			document.body.removeChild(this.myFrame);
+			delete this.myFrame
 		}
+		var url = this.props.loginServer + "#blank"
+		var i = document.createElement('iframe');
+		this.myFrame = i  
+		i.style.display = 'none'; 
+		i.src = url
+		i.onload = function() {
+		  var popup = i.contentWindow;
+		  that.checkIsLoggedIn(popup)
+		}
+		document.body.appendChild(i);
 	}
 
      doLogin() {
-        var url = this.props.loginServer+ '#login'
-        var popup = window.open(url,'mywin')
-        this.pollShouldClose(popup,['login','register','forgot','registerconfirm','privacy'])
+     //
+        //var url = this.props.loginServer+ '#login'
+        //var popup = window.open(url,'mywin')
+        //this.pollShouldClose(popup,['login','register','forgot','registerconfirm','privacy'])
     }
     
      doProfile() {
-        var url = this.props.loginServer + '#profile'
-        var popup = window.open(url,'mywin')
-        this.pollShouldClose(popup,['profile','logout'])
+        //sShouldClose(popup,['profile','logout'])
     }
     
     doLogout() {
+		let that = this
 		var origin = new URL(that.props.loginServer).origin
-		this.myFrame.src=that.props.loginServer + '#logout'
-		this.setUser(null)
+        if (this.myFrame && this.myFrame.contentWindow) {
+			console.log('post logout message')
+			this.myFrame.contentWindow.postMessage({logout:true}, origin);
+		}
+        this.setUser(null)
 	}
 	     
      isLoggedIn() {
@@ -131,11 +173,8 @@ export default class ExternalLogin   extends Component {
 	}     
   
     render(props) {
-		var theUrl = new URL(this.props.loginServer)
-	  
-      return <div>
-      {this.props.children(this.state.user,this.setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString,this.isLoggedIn, this.loadUser,this.doLogout, this.doLogin, this.doProfile,theUrl.path, theUrl.origin)}
-      
+	  return <div>
+		{this.props.children({user:this.state.user,setUser:this.setUser,setIframeUser: this.setIframeUser, getAxiosClient: getAxiosClient,getMediaQueryString: getMediaQueryString,getCsrfQueryString: getCsrfQueryString,isLoggedIn: this.isLoggedIn, loadUser: this.loadUser,logout: this.doLogout, doLogin: this.doLogin, doProfile: this.doProfile, loginServer: this.props.loginServer, pollAuthSuccess: this.pollAuthSuccess, loginRedirect: this.props.loginRedirect, logoutRedirect: this.props.logoutRedirect, buttons: this.props.buttons})}
       </div>
     }
 }

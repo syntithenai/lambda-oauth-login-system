@@ -10,8 +10,7 @@ const fs = require('fs')
 if (process.env.IS_OFFLINE === 'true') {
 	process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 }
-//var path = require('path');
-
+//console.log(process.env)
 function getGatewayUrl() {
 	if (process.env.IS_OFFLINE !== 'true') {
 		return process.env.LAMBDA_REST_GATEWAY 
@@ -42,8 +41,10 @@ module.exports = {
    allowedOrigins: process.env.allowedOrigins && process.env.allowedOrigins.trim() ? process.env.allowedOrigins : '',
    lambdaUrl:"/login",
    authServer: getGatewayUrl()+'/login/api',
-  // oauth login callback
-   loginSuccessRedirect: getGatewayUrl()+'/login#profile',
+   loginServer: getGatewayUrl()+'/login',
+
+  // oauth login redirect
+   loginSuccessRedirect: getGatewayUrl()+'/login#/success',
    loginFailRedirect: getGatewayUrl()+'/login',
    // LOGIN CLIENT KEYS AND SECRETS
    googleClientId: process.env.googleClientId,
@@ -68,13 +69,11 @@ module.exports = {
    clientImage:process.env.clientImage,
    
    // EMAIL
-   // array of email addresses allowed to register. Empty array means anyone can register.
-   // DISABLED allowedUsers:[],  
-    // email transport
     mailFrom:process.env.mailFrom,
     sendGridApiKey: process.env.sendGridApiKey,
-    mailRegisterTopic: 'Confirm your registration',
-    mailForgotPasswordSubject: "Update your password ",
-    
+    mailRegisterTopic: process.env.mailRegisterTopic,
+    mailForgotPasswordSubject: process.env.mailForgotPasswordSubject,
+    recoveryEmailTemplate: process.env.recoveryEmailTemplate, 
+    signupEmailTemplate: process.env.signupEmailTemplate
 }
 

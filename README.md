@@ -16,7 +16,6 @@ Included are
 
 
 
-
 ## Quickstart Localhost
 
 ### Preparation
@@ -70,6 +69,7 @@ If you are using client apps served from a different domain, you will need to pr
 
 ```
 cd api
+npm i
 sls offline
 ```
 
@@ -80,6 +80,7 @@ When the offline server has started, open https://localhost:5000/dev/login in yo
 ### Update the login system web pages 
 ```
 cd client
+npm i
 npm run build
 ```
 
@@ -102,7 +103,7 @@ It can also be used to provide unified login across a collection of domains.
 
 When the login system is deployed, the serverless output LAMBDARESTGATEWAY is set to the public URL of the login system. This information is also written to stack.json.
 
-Web app clients that use the login system can import the ```ExternalLogin``` component from the npm package ```lambda-oauth-login-react-system-components``` and specify the property ```loginServer```
+Web app clients that use the login system can import the ```ExternalLogin``` component from the npm package ```lambda-oauth-login-system-react-components``` and specify the property ```loginServer```
 
 The ExternalLogin components uses cross domain postMessages to popup windows for login/oauth flows and an iframe for polling login status.
 
@@ -151,8 +152,12 @@ under the same domain name. For more detail see https://www.serverless.com/plugi
 
 
 ## Social Login
+
+You will need to deploy your login system to AWS to create the url used as ```authorized redirects``` configuring social login services.
+
 When creating keys and secrets for the various social login services, it is required to set one or many authorized redirects which are 
-set to the rest url of the lambda function plus a subpath to the callback.
+set to the rest url of the lambda function plus a subpath to the callback. Subpaths include googlecallback, facebookcallback, amazoncallback, githubcallback, twittercallback.
+
 See the .env file for links to get keys for the social services.
 
 eg ```https://ki3hmdq3uh.execute-api.us-east-1.amazonaws.com/dev/login/api/googlecallback```
@@ -173,4 +178,29 @@ To support this in your api routes,
 ```
 import 
 ```
+
+
+## Technical Overview
+
+The express-oauth-login-system is designed to be used mostly with ajax requests returning JSON.
+In this way a client can use the login system on a different domain without the login system knowing about
+
+There are a few special cases around oauth flows that are challenging.
+
+
+### REST API endpoints
+
+Returning JSON
+
+- /saveuser
+- /me
+- /refresh_token
+- / buttons
+- /signup
+- /signinajax
+- /recover
+
+
+
+
 
