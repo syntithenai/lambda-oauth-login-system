@@ -9,9 +9,16 @@ export default  class Logout extends Component {
   
     componentDidMount() {
         let that = this
-        if (that.props.user && that.props.user.token && that.props.user.token.access_token) this.props.logout(that.props.user.token.access_token)
+        if (that.props.isLoggedIn()) this.props.logout(that.props.user.token.access_token)
         
     }; 
+    
+    componentDidUpdate(props) {
+        let that = this
+        if (props.isLoggedIn()) props.logout(props.user.token.access_token)
+        
+    }; 
+    
     
  
     render() {

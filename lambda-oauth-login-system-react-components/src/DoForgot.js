@@ -24,7 +24,7 @@ constructor(props) {
 		}).then(function(data) {
 			if (data.user && data.user.username && data.user.username.trim()) {
 				that.props.setUser(data.user)
-				that.props.setIframeUser(data.user)
+				if (that.props.testIframeLogin) that.props.testIframeLogin(data.user)
 				that.setState({redirect:that.props.loginRedirect})
 			}
 			if (data.error) that.setState({error: data.error})

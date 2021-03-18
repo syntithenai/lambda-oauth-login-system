@@ -47,6 +47,7 @@ export default  class Login extends Component {
 		.then(function(data) {
 			if (data && data.user && data.user.username && data.user.username.trim()) {
 				that.props.setUser(data.user)
+				if (that.props.testIframeLogin) that.props.testIframeLogin(data.user)
 				that.setState({redirect: that.props.loginRedirect})
 			} else if (data.error) {
 				that.submitWarning(data.error)

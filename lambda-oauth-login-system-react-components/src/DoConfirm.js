@@ -24,7 +24,7 @@ export default  class DoConfirm extends Component {
 		}).then(function(data) {
 			if (data.user && data.user.username && data.user.username.trim()) {
 				that.props.setUser(data.user)
-				that.props.setIframeUser(data.user)
+				if (that.props.testIframeLogin) that.props.testIframeLogin(data.user)
 				that.setState({redirect:that.props.loginRedirect})
 			}
 			if (data.error) that.setState({error: data.error})
@@ -44,7 +44,7 @@ export default  class DoConfirm extends Component {
 				{this.state.error}
 			</b>
 		} else {
-			return <b>Checking confirmation</b>
+			return <b>Checking login</b>
 		}
 		
 		

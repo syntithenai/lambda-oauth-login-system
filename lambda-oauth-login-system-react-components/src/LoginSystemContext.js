@@ -44,18 +44,19 @@ export default  class LoginSystemContext extends Component {
 			
              // only handle messages if allowedOrigins is set and message comes from an allowedOrigin  
              if (that.state.allowedOrigins && that.state.allowedOrigins.indexOf(event.origin) !== -1) {  
-					
-				//console.log(['LoginSystemContext MESSAGE allowed',event.data,that.state.allowedOrigins,event.origin])
 				// poll login status
                 if (event.data && event.data.check_login) {
-                    // send null unless token AND user are loaded
-                    //console.log('LoginSystemContext MESSAGE check login')
-				
-                    event.source.postMessage({user:that.state.user },event.origin)
+                	event.source.postMessage({user:that.state.user },event.origin)
+					if (that.isLoggedIn()) window.close()
+                    
                 }
+                if (event.data && event.data.confirm_login) {
+				    event.source.postMessage({confirm_login_ok:that.isLoggedIn() },event.origin)
+				}
+                
                 if (event.data && event.data.refresh_login) {
-                    // send null unless token AND user are loaded
                     that.useRefreshToken().then(function (user) {
+						that.setUser(user)
 						event.source.postMessage({user:user},event.origin)
 					})
              	}

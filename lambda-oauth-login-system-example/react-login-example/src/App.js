@@ -25,7 +25,7 @@ function App(props) {
 					    <NavbarComponent user={loginContext.user}  isLoggedIn={loginContext.isLoggedIn}   />
 					    <Switch>
 							<Route  path={`/login`}  render={(props) => <LoginSystem  {...loginContext} hideButtons={true}  match={props.match}  history={props.history}  location={props.location}  />}  />
-							<Route  path={`/loggedin`} component={function(props) {return <b>{loginContext.isLoggedIn() && <b>Logged In</b>}{!loginContext.isLoggedIn() && <b>NOT Logged In</b>}</b>   }} />
+							<Route  path={`/loggedin`} component={function(props) {return <b>{loginContext.isLoggedIn() && <b>Logged dddIn{JSON.stringify(loginContext.user)}</b>}{!loginContext.isLoggedIn() && <b>NOT Logged In</b>}</b>   }} />
 						</Switch>
 						</Router>
 					  </React.Fragment>

@@ -5,14 +5,14 @@ export default class ExternalLogin   extends Component {
   
    constructor(props) {
         super(props)
-        this.state = {user:null, checkLoginIframe: null, redirect: null}
+        this.state = {user:null, checkLoginIframe: null, redirect: null, useWindow: (localStorage.getItem('useWindowForLoginPolling') === 'true' ? true : false)}
         //this.loginPopup = null
         this.pollLoginTimeout = null
-        this.pollCloseTimeout = null
+        //this.pollCloseTimeout = null
         this.pollAuthSuccessTimeout = null
         this.pollAuthSuccess = this.pollAuthSuccess.bind(this)
         this.receiveMessage = this.receiveMessage.bind(this)
-        this.pollShouldClose = this.pollShouldClose.bind(this)
+        //this.pollShouldClose = this.pollShouldClose.bind(this)
         this.checkIsLoggedIn = this.checkIsLoggedIn.bind(this)
         this.createLoginIframe = this.createLoginIframe.bind(this)
         this.doLogin = this.doLogin.bind(this)
@@ -24,6 +24,8 @@ export default class ExternalLogin   extends Component {
         this.setIframeUser = this.setIframeUser.bind(this)
         this.receiveMessage = this.receiveMessage.bind(this)
         this.myFrame = null
+        this.testIframeLogin = this.testIframeLogin.bind(this)
+        this.confirmIsLoggedIn = this.confirmIsLoggedIn.bind(this)
     }
     
     setUser(user) {
@@ -80,17 +82,17 @@ export default class ExternalLogin   extends Component {
     }
     // poll a window to check if it's path is in a list of allowed pages or close the window
     // used with external standalone login 
-     pollShouldClose(popup, allowedPages) {
-        let that = this
-        if (this.pollTimeout) clearTimeout(this.pollTimeout)
-        this.pollTimeout = setTimeout(function() {
-            if (popup && !popup.closed) {
-				var origin = new URL(that.props.loginServer).origin
-                popup.postMessage({check_login:true, allowedPages: allowedPages}, origin);
-                that.pollShouldClose(popup, allowedPages)
-            }
-        },500)
-    }
+     //pollShouldClose(popup, allowedPages) {
+        //let that = this
+        //if (this.pollTimeout) clearTimeout(this.pollTimeout)
+        //this.pollTimeout = setTimeout(function() {
+            //if (popup && !popup.closed) {
+				//var origin = new URL(that.props.loginServer).origin
+                //popup.postMessage({check_login:true, allowedPages: allowedPages}, origin);
+                //that.pollShouldClose(popup, allowedPages)
+            //}
+        //},500)
+    //}
     // open a window to check login then close it when it responds
      checkIsLoggedIn(popup, count = 0) {
 		 let that = this
