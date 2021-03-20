@@ -75,14 +75,7 @@ export default  class OAuth extends Component {
 							authRequest.user = that.props.user ? that.props.user.username : '';
 							localStorage.setItem('auth_request',JSON.stringify(authRequest))
 							that.setState({authRequest: authRequest});
-							// request captured, now redirect to login
-							//if (!that.props.isLoggedIn()) {
-								////console.log('GO TO LOGIN ')
-								////that.props.history.push('/login/login');
-							//} 
-							////else {
-								//that.props.history.push('/login/oauth');
-							//}
+							
 						}
 				  }).catch(function(error) {
 					console.log(['SIGN IN request failed', error])

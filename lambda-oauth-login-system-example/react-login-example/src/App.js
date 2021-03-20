@@ -1,23 +1,19 @@
 import React from 'react';
-import {HashRouter as  Router, Route, Link  , Switch} from 'react-router-dom'
+import {HashRouter as  Router, Route  , Switch} from 'react-router-dom'
 import {ExternalLogin, LoginSystem} from 'lambda-oauth-login-system-react-components'
 import NavbarComponent from './NavbarComponent'
-import Profile from './Profile'
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const axios = require('axios');
- 
 function App(props) {
-	let that = this
 	var loginServer = (process.env.REACT_APP_LOGIN && process.env.REACT_APP_LOGIN.trim()) ? process.env.REACT_APP_LOGIN : window.loginServer
-	var loginServerURL = new URL(loginServer)			
-    return (
+	return (
 		 <ExternalLogin  
 				loginServer={loginServer}
 				loginRedirect={'/loggedin'}	
 				logoutRedirect={'/'}
 				buttons={['google','twitter','facebook','github','amazon']}
+				refreshInterval={840000}
 				>{(loginContext) => {
 						 return  <React.Fragment>
 					  

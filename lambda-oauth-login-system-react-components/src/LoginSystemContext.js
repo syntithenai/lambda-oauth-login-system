@@ -11,11 +11,8 @@ export default  class LoginSystemContext extends Component {
         this.state = {
             user: {}, 
             // from props or env vars
-            //authServer: props.authServer && props.authServer.trim() ? props.authServer : '', 
-            //authServerHostname: props.authServerHostname && props.authServerHostname.trim() ? props.authServerHostname : (window.authServer && window.authServer.trim() ? window.authServer : window.location.origin),
             allowedOrigins: props.allowedOrigins && props.allowedOrigins.split(",").length > 0  ? props.allowedOrigins : (window.allowedOrigins && window.allowedOrigins.split(",").length > 0 ? window.allowedOrigins.split(",") : [])
         }
-        //console.log(['STATE',this.state])
         this.setUser = this.setUser.bind(this)
         this.useRefreshToken = this.useRefreshToken.bind(this)
         this.loadUser = this.loadUser.bind(this)
@@ -40,9 +37,7 @@ export default  class LoginSystemContext extends Component {
         window.addEventListener("message", receiveMessage, false);
         
         function receiveMessage(event) {
-			//console.log(['LoginSystemContext MESSAGE',event.data])
-			
-             // only handle messages if allowedOrigins is set and message comes from an allowedOrigin  
+		     // only handle messages if allowedOrigins is set and message comes from an allowedOrigin  
              if (that.state.allowedOrigins && that.state.allowedOrigins.indexOf(event.origin) !== -1) {  
 				// poll login status
                 if (event.data && event.data.check_login) {
@@ -75,6 +70,8 @@ export default  class LoginSystemContext extends Component {
                     event.source.postMessage({user: null},event.origin)
                 }
             }
+        
+            
         }
 
         
@@ -99,7 +96,7 @@ export default  class LoginSystemContext extends Component {
                             that.useRefreshToken().then(function(userAndToken) { 
                                 that.setUser(userAndToken)
                             })
-                        },840000) // 14 minutes
+                        },that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 8400) // 14 minutes
                         resolve(combined)
                     })
                 } else {

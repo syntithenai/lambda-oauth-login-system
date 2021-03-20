@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import {FaSignOutAlt as LogoutButton} from 'react-icons/fa';
 import {FaSave as SaveButton} from 'react-icons/fa';
-import {Link,Redirect} from 'react-router-dom'
+import {Redirect} from 'react-router-dom'
 import {scrollToTop} from './helpers'  
-import {getCookie,getAxiosClient,  getParentPath} from './helpers'  
+import {getAxiosClient} from './helpers'  
 
  
 export default class Profile extends Component {
@@ -78,8 +77,7 @@ export default class Profile extends Component {
     };
     
     componentDidMount() {
-        let that = this;
-		scrollToTop();
+       scrollToTop();
 	};
     
     
@@ -87,8 +85,7 @@ export default class Profile extends Component {
         if (this.state.redirect) {
             return <Redirect to={this.state.redirect} />
         } 
-        let that = this;
-		if (this.props.user) {
+       if (this.props.user) {
             return (
             <div> 
                 

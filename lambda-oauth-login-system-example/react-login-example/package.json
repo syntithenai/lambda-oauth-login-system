@@ -11,7 +11,7 @@
     "gulp-inline-source": "^4.0.0",
     "gulp-replace": "^1.0.0",
     "jquery": "^3.6.0",
-    "lambda-oauth-login-system-react-components": "^1.0.6",
+    "lambda-oauth-login-system-react-components": "file:../../lambda-oauth-login-system-react-components",
     "popper.js": "^1.16.1",
     "react": "^17.0.1",
     "react-bootstrap": "^1.5.1",
