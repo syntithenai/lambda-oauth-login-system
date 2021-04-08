@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {FaSave as SaveButton} from 'react-icons/fa';
-import {Redirect} from 'react-router-dom'
+import {Redirect, Link} from 'react-router-dom'
 import {scrollToTop} from './helpers'  
 import {getAxiosClient} from './helpers'  
 
@@ -85,7 +85,7 @@ export default class Profile extends Component {
         if (this.state.redirect) {
             return <Redirect to={this.state.redirect} />
         } 
-       if (this.props.user) {
+       if (this.props.user && this.props.user._id) {
             return (
             <div> 
                 
@@ -95,7 +95,7 @@ export default class Profile extends Component {
                  Close</button>}
                 {this.props.isLoggedIn() && <Link to={this.props.linkBase+"/logout"}   >
                 <button className='btn btn-warning' style={{float:'right'}} >
-                <LogoutButton  /> Logout</button></Link>}
+                Logout</button></Link>}
                 
                 <Link to={this.props.linkBase+'/login'} style={{clear:'both',display:'inline'}} >
                      <button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</button>

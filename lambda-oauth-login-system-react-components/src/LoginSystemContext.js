@@ -9,7 +9,9 @@ export default  class LoginSystemContext extends Component {
         super(props);
         this.props = props
         this.state = {
-            user: {}, 
+			warning_message: '',
+            user: null,
+            userInitialised: false, 
             // from props or env vars
             allowedOrigins: props.allowedOrigins && props.allowedOrigins.split(",").length > 0  ? props.allowedOrigins : (window.allowedOrigins && window.allowedOrigins.split(",").length > 0 ? window.allowedOrigins.split(",") : [])
         }
@@ -18,56 +20,151 @@ export default  class LoginSystemContext extends Component {
         this.loadUser = this.loadUser.bind(this)
         this.logout = this.logout.bind(this)
         this.isLoggedIn = this.isLoggedIn.bind(this)
+        this.submitWarning = this.submitWarning.bind(this)
+        this.signIn = this.signIn.bind(this)
+        this.doConfirm = this.doConfirm.bind(this)
+        this.doForgot = this.doForgot.bind(this)
+		
      };
-    
-    isLoggedIn() {
-        return (this.state.user && this.state.user.token && this.state.user.token.access_token) ? true : false
-    }
-    
-    setUser(user) {
-        this.setState({user:user})
-    }
-    
+     
     componentDidMount(props) {
         let that=this;
-        this.useRefreshToken().then(function(userAndToken) { 
-            that.setUser(userAndToken)
-        })
-    
+        // refresh login using server cookies
+        var refreshToken = null
+        if (window.location.search && window.location.search.indexOf('?refresh_token') !== -1) {
+			refreshToken = window.location.search.slice(15)
+		}
+		this.useRefreshToken(refreshToken).then(function(userAndToken) { 
+			that.setUser(userAndToken)
+			//console.log(["finished use refresh token",userAndToken])
+			// don't process messages until we've tried restoring login from session
+			that.setState({userInitialised: true})
+		})
+	
         window.addEventListener("message", receiveMessage, false);
+        var checkActive = false
+        var confirmLoginActive = false
+		var refreshActive = false
+                
+        var loginActive = false
+        var confirmActive = false
+        var forgotActive = false
+        
         
         function receiveMessage(event) {
+			//console.log(['master event',JSON.stringify(event.data)])
 		     // only handle messages if allowedOrigins is set and message comes from an allowedOrigin  
              if (that.state.allowedOrigins && that.state.allowedOrigins.indexOf(event.origin) !== -1) {  
 				// poll login status
-                if (event.data && event.data.check_login) {
-                	event.source.postMessage({user:that.state.user },event.origin)
-					if (that.isLoggedIn()) window.close()
+                if (event.data && event.data.check_login && that.state.userInitialised) {
+                	//if (!checkActive && userInitialised) {
+						//checkActive = true
+						//that.useRefreshToken().then(function (user) {
+							//that.setUser(user)
+							//console.log('send user after check')
+							//console.log({user:that.state.user})
+							event.source.postMessage({check_login_ok: true, user:that.state.user},event.origin)
+							//checkActive = false
+							//if (user && user.username) 
+							window.close()
+						//})
+					//}
                     
                 }
-                if (event.data && event.data.confirm_login) {
-				    event.source.postMessage({confirm_login_ok:that.isLoggedIn() },event.origin)
+                if (event.data && event.data.confirm_login && that.state.userInitialised) {
+				    //if (!confirmLoginActive) {
+						//confirmLoginActive = true
+						//that.useRefreshToken().then(function (user) {
+							//that.setUser(user)
+							event.source.postMessage({confirm_login_ok:that.isLoggedIn() },event.origin)
+							//confirmLoginActive = false
+						//})
+					//}
 				}
                 
-                if (event.data && event.data.refresh_login) {
-                    that.useRefreshToken().then(function (user) {
-						that.setUser(user)
-						event.source.postMessage({user:user},event.origin)
-					})
+                if (event.data && event.data.refresh_login && that.state.userInitialised) {
+					if (!refreshActive) { 
+						refreshActive = true
+						that.useRefreshToken().then(function (user) {
+							that.setUser(user)
+							event.source.postMessage({user:user},event.origin)
+							refreshActive = false
+						})
+					}
              	}
                 // close window when location changes from an allowedPage
-                if (event.data && event.data.allowedPages && Array.isArray(event.data.allowedPages)) {
-                    var parts = window.location.href ? window.location.href.split("/") : []
-                    if (event.data.allowedPages.indexOf(parts[parts.length -1]) === -1) {
-                           window.close()
-                    }
+                //if (event.data && event.data.allowedPages && Array.isArray(event.data.allowedPages)) {
+                    //var parts = window.location.href ? window.location.href.split("/") : []
+                    //if (event.data.allowedPages.indexOf(parts[parts.length -1]) === -1) {
+                           //window.close()
+                    //}
                 
-                }
+                //}
                 // logout message
                 if (event.data && event.data.logout) {
                     // send null unless token AND user are loaded
                     if (that.isLoggedIn()) that.logout(that.state.user.access_token)
                     event.source.postMessage({user: null},event.origin)
+                }
+                
+                // login message
+                if (event.data && event.data.login && event.data.username && event.data.password && that.state.userInitialised) {
+					//console.log(['master event login',event.data])
+				    if (!loginActive) {
+						loginActive = true
+                		that.signIn(event.data.username,event.data.password).then(function(result) {
+							if (result) {
+								if (result.error) {
+									event.source.postMessage({login_fail: result.error},event.origin)
+								} else {
+									that.setUser(result.user)
+									event.source.postMessage({login_success: true, user: result.user},event.origin)
+								}
+							}
+							loginActive = false
+							window.close()
+						})
+					}
+                }
+                
+                // registration confirm message
+                if (event.data && event.data.doconfirm && event.data.code && that.state.userInitialised) {
+					//console.log(['master event confirm',event.data])
+				    if (!confirmActive) {
+						confirmActive = true
+                		that.doConfirm(event.data.code).then(function(result) {
+							if (result) {
+								if (result.error) {
+									event.source.postMessage({login_fail: result.error},event.origin)
+								} else {
+									that.setUser(result.user)
+									event.source.postMessage({login_success: true, user: result.user},event.origin)
+								}
+							}
+							confirmActive = false
+							window.close()
+						})
+					}
+                }
+                
+                // forgot password message
+                if (event.data && event.data.doforgot && event.data.code && that.state.userInitialised) {
+					//console.log(['master event forgot',event.data])
+				    if (!forgotActive) {
+						forgotActive = true
+                		that.doForgot(event.data.code).then(function(result) {
+							if (result) {
+								if (result.error) {
+									event.source.postMessage({login_fail: result.error},event.origin)
+								} else {
+									that.setUser(result.user)
+									event.source.postMessage({login_success: true, user: result.user},event.origin)
+								}
+							}
+							forgotActive = false
+							window.close()
+						})
+					}
                 }
             }
         
@@ -77,13 +174,116 @@ export default  class LoginSystemContext extends Component {
         
     };
    
+    submitWarning(warning) {
+        let that=this;
+        if (this.warningTimeout) clearTimeout(this.warningTimeout);
+        this.setState({'warning_message':warning});
+        this.warningTimeout = setTimeout(function() {
+            that.setState({'warning_message':''});
+        },6000);
+    };
+     
+    isLoggedIn() {
+        return (this.state.user && this.state.user.token && this.state.user.token.access_token) ? true : false
+    }
     
-    useRefreshToken() {
+    setUser(user) {
+        this.setState({user:user})
+    }
+    
+    signIn(username,password) {
+		let that = this;
+		const axiosClient = getAxiosClient({});
+		return new Promise(function(resolve,reject) {
+			axiosClient.post(that.props.loginServer+'/api/signinajax',{
+				username: username,
+				password: password
+			})
+			.then(function(res) {
+			  return res.data;  
+			})
+			.then(function(data) {
+				if (data) {
+					if (data.user && data.user.username && data.user.username.trim()) {
+						resolve({user: data.user})
+					} else if (data.error) {
+						resolve({error: data.error})
+					} 
+				} else {
+					resolve(null)
+				}
+				
+			}).catch(function(err) {
+				console.log(err);
+				resolve(null)
+				
+			})
+		})
+	} 
+	
+	
+	doConfirm(code) {
+		let that = this
+		//console.log(['master event do confirm',code])
+		const axiosClient = getAxiosClient();
+		return new Promise(function(resolve,reject) {
+			axiosClient({
+			  url: that.props.loginServer+'/api/doconfirm' + code,
+			  method: 'get',
+			}).then(function(res) {
+				return res.data;  
+			}).then(function(data) {
+				if (data.user && data.user.username && data.user.username.trim()) {
+					resolve({user: data.user})
+				} else if (data.error) {
+					resolve({error: data.error})
+				} else {
+					resolve()
+				}
+			}).catch(function(err) {
+				console.log(err);
+				resolve()
+			});
+		})
+	 }
+	 
+	 doForgot(code) {
+		let that = this
+		//console.log(['master event do forgot',code])
+		const axiosClient = getAxiosClient();
+		return new Promise(function(resolve,reject) {
+			axiosClient({
+			  url: that.props.loginServer+'/api/dorecover' + code,
+			  method: 'get',
+			}).then(function(res) {
+				return res.data;  
+			}).then(function(data) {
+				if (data.user && data.user.username && data.user.username.trim()) {
+					resolve({user: data.user})
+				} else if (data.error) {
+					resolve({error: data.error})
+				} else {
+					resolve()
+				}
+			}).catch(function(err) {
+				console.log(err);
+				resolve()
+			});
+		})
+	 }
+	
+	   
+	
+    useRefreshToken(refreshToken) {
         let that = this
         return new Promise(function(resolve,reject) {
             const axiosClient = getAxiosClient();
+            // if we have a user loaded, use refresh token from memory
+            // this is helpful where cookies are disabled to allow background login refresh
+            // NOTE that without cookies, login does not persist through page reloads
+            var query = refreshToken ? '?refresh_token='+refreshToken : ''
             axiosClient( {
-              url: that.props.loginServer+'/api/refresh_token',
+              url: that.props.loginServer+'/api/refresh_token' + query,
               method: 'get'
             }).then(function(res) {
                 return res.data;  
@@ -148,7 +348,9 @@ export default  class LoginSystemContext extends Component {
   
     render() {
         return <div>
-			{this.props.children(this.state.user,this.setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString, this.isLoggedIn, this.loadUser, this.useRefreshToken,this.logout, this.props.loginServer, this.state.allowedOrigins)}
+			 {this.state.warning_message && <div className='warning-message'   style={{position:'fixed', top: 100, left:100, padding: '1em', border: '1px solid red', backgroundColor:'pink'}}  >{this.state.warning_message}</div>}
+      
+			{this.props.children(Object.assign({},this.props,{user: this.state.user,userInitialised: this.state.userInitialised, setUser: this.setUser,getAxiosClient: getAxiosClient,getMediaQueryString: getMediaQueryString,getCsrfQueryString: getCsrfQueryString, isLoggedIn: this.isLoggedIn, loadUser: this.loadUser, useRefreshToken: this.useRefreshToken,logout: this.logout, allowedOrigins: this.state.allowedOrigins, submitWarning: this.submitWarning}))}
          </div>
     }
     

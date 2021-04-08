@@ -15,28 +15,29 @@ export default  class DoConfirm extends Component {
     
     componentDidMount() {
 		let that = this
-		const axiosClient = getAxiosClient();
-		axiosClient({
-		  url: that.props.loginServer+'/api/doconfirm' + window.location.search,
-		  method: 'get',
-		}).then(function(res) {
-			return res.data;  
-		}).then(function(data) {
-			if (data.user && data.user.username && data.user.username.trim()) {
-				that.props.setUser(data.user)
-				if (that.props.testIframeLogin) that.props.testIframeLogin(data.user)
-				that.setState({redirect:that.props.loginRedirect})
-			}
-			if (data.error) that.setState({error: data.error})
-		}).catch(function(err) {
-			console.log(err);
-		});
-
+		if (that.props.startPollConfirmSuccess) {
+			that.props.startPollConfirmSuccess(window.location.search)
+		} else {
+			const axiosClient = getAxiosClient();
+			axiosClient({
+			  url: that.props.loginServer+'/api/doconfirm' + window.location.search,
+			  method: 'get',
+			}).then(function(res) {
+				return res.data;  
+			}).then(function(data) {
+				if (data.user && data.user.username && data.user.username.trim()) {
+					that.props.setUser(data.user)
+					that.setState({redirect:that.props.loginRedirect})
+				}
+				if (data.error) that.setState({error: data.error})
+			}).catch(function(err) {
+				console.log(err);
+			});
+		}
 	}
  
     render() {
 		if (this.state.redirect) {
-			//window.location.search = ''
 			return <Redirect to={this.state.redirect} />
 		} else if (this.state.error) {
 			return <b>

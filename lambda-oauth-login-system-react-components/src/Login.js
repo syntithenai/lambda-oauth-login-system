@@ -16,59 +16,82 @@ export default  class Login extends Component {
     
     constructor(props) {
         super(props);
-        this.state={redirect: null, warning_message: '', signin_username:'',signin_password:'',rememberme:false};
+        this.state={redirect: null,  signin_username:'',signin_password:'',rememberme:false};
         this.change = this.change.bind(this);
         this.signIn = this.signIn.bind(this);
-        this.submitWarning = this.submitWarning.bind(this)
         this.startOauthFlow = this.startOauthFlow.bind(this)
+        this.pollAuthSuccessTimeout = null
         this.authWindow = null
+        this.loginWindow = null
     };
     
     componentDidMount() {
         let that = this
         if (window.location.search.indexOf('fail=true') !== -1) {
-            this.submitWarning('Login Failed')
+            this.props.submitWarning('Login Failed')
         }
-        
+		window.addEventListener("message", function() {
+			var origin = new URL(that.props.loginServer).origin
+			if (event.origin === origin) {
+				if (event.data && event.data.login_success) {
+					//console.log('LOGIN SUCCESS EVENT')
+					that.setState({signin_username: '', signin_password:''})
+				} else if (event.data && event.data.login_fail) {
+					//console.log('LOGIN fail EVENT')
+					that.setState({signin_username: '', signin_password:''})
+				}
+			}
+		}, false); 
+	
     }
-         
+    
+    startOauthFlow(url) {
+		if (this.authWindow) this.authWindow.close() 
+		this.authWindow = window.open(url)
+		if (this.props.pollAuthSuccess) this.props.pollAuthSuccess(this.authWindow)
+	}
+ 
     signIn(e) {
+		//console.log(this.props)
+		
 		let that = this;
 		e.preventDefault()
-		//console.log('signing')
-        const axiosClient = getAxiosClient({});
-        axiosClient.post(that.props.loginServer+'/api/signinajax',{
-			username: this.state.username,
-			password: this.state.password
-		})
-		.then(function(res) {
-		  return res.data;  
-		})
-		.then(function(data) {
-			if (data && data.user && data.user.username && data.user.username.trim()) {
-				that.props.setUser(data.user)
-				if (that.props.testIframeLogin) that.props.testIframeLogin(data.user)
-				that.setState({redirect: that.props.loginRedirect})
-			} else if (data.error) {
-				that.submitWarning(data.error)
-			}
-			
-		}).catch(function(err) {
-			console.log(err);
-			
-		})
+		if (that.props.startPollLoginSuccess) {
+			//console.log(this.state)
+			that.props.startPollLoginSuccess(this.state.signin_username,this.state.signin_password)
+			//that.setState({signin_username: '', signin_password:''})
+				
+		} else {
+			if (this.props.startWaiting) this.props.startWaiting();
+			const axiosClient = getAxiosClient({});
+			axiosClient.post(that.props.loginServer+'/api/signinajax',{
+				username: this.state.signin_username,
+				password: this.state.signin_password
+			})
+			.then(function(res) {
+			  return res.data;  
+			})
+			.then(function(data) {
+				if (that.props.stopWaiting) that.props.stopWaiting();
+				if (data && data.user && data.user.username && data.user.username.trim()) {
+					that.props.setUser(data.user)
+					
+					that.setState({redirect: that.props.loginRedirect, signin_username: '', signin_password:''})
+					
+				} else if (data.error) {
+					that.setState({signin_username: '', signin_password:''})
+					that.props.submitWarning(data.error)
+				}
+				
+			}).catch(function(err) {
+				console.log(err);
+				
+			})
+		}
 		return false
 	} 
 	
-    submitWarning(warning) {
-        let that=this;
-        clearTimeout(this.timeout);
-        this.setState({'warning_message':warning});
-        this.timeout = setTimeout(function() {
-            that.setState({'warning_message':''});
-        },6000);
-    };     
-         
+  
     change(e) {
         var state = {};
         state[e.target.name] =  e.target.value;
@@ -76,11 +99,7 @@ export default  class Login extends Component {
         return true;
     };
    
-	startOauthFlow(url) {
-		if (this.authWindow) this.authWindow.close() 
-		this.authWindow = window.open(url)
-		if (this.props.pollAuthSuccess) this.props.pollAuthSuccess(this.authWindow)
-	}
+
  
     render() {
 		let that = this;
@@ -106,7 +125,7 @@ export default  class Login extends Component {
 			   {window.opener && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
 					 Close</button>}
 							
-			 {(this.props.isLoggedIn()) && <Link to={this.props.linkBase + '/profile'} style={{clear:'both',display:'inline'}} >
+			 {(this.props.isLoggedIn() && !this.props.hideButtons) && <Link to={this.props.linkBase + '/profile'} style={{clear:'both',display:'inline'}} >
 				 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Profile</div>
 			</Link>}
 			 
@@ -122,11 +141,10 @@ export default  class Login extends Component {
 			  <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Sign in</h1>
 			 {loginButtons && loginButtons.length > 0 && <div style={{float:'right'}}> using {loginButtons}  <br/> </div>}
 				 
-			   <form className="form-signin"   onSubmit={this.signIn} >
+			   <form className="form-signin"   onSubmit={this.signIn}  >
 			   
 				{this.state.warning_message && <div className='warning-message'   style={{position:'fixed', top: 100, left:100, padding: '1em', border: '1px solid red', backgroundColor:'pink'}}  >{this.state.warning_message}</div>}
 			 
-											  
 						 
 			  <label htmlFor="inputEmail" className="sr-only">Email address</label>
 			  <input type="text" name="signin_username" id="inputEmail" className="form-control" placeholder="Email address" required onChange={this.change}   value={this.state.signin_username} autoComplete="signin_username" />

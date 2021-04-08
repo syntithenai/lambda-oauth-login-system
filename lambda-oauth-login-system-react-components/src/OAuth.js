@@ -22,7 +22,7 @@ export default  class OAuth extends Component {
     cancelAuthRequest(e) {
 		e.preventDefault();
 		this.setState({authRequest:null})
-		localStorage.setItem('auth_request','')
+		if (localStorage && localStorage.setItem) localStorage.setItem('auth_request','')
 		window.location='/'
 		return false;
 	}
@@ -66,14 +66,14 @@ export default  class OAuth extends Component {
 				  .then(function(data) {
 						if (that.props.stopWaiting) that.props.stopWaiting();
 						if (data.error) {
-							console.log(data.error,data);
+							//console.log(data.error,data);
 							that.props.submitWarning(data.error);
 						} else {
 							authRequest.name = data.name;
 							authRequest.website_url = data.website_url;
 							authRequest.privacy_url = data.privacy_url;
 							authRequest.user = that.props.user ? that.props.user.username : '';
-							localStorage.setItem('auth_request',JSON.stringify(authRequest))
+							if (localStorage && localStorage.setItem) localStorage.setItem('auth_request',JSON.stringify(authRequest))
 							that.setState({authRequest: authRequest});
 							
 						}
@@ -83,8 +83,10 @@ export default  class OAuth extends Component {
 				
 				
 			} else {
-				let authRequest = localStorage.getItem('auth_request');
-				that.setState({authRequest: JSON.parse(authRequest)});						
+				if (localStorage && localStorage.setItem)  {
+					let authRequest = localStorage.getItem('auth_request');
+					that.setState({authRequest: JSON.parse(authRequest)});						
+				}
 			}
 		}
 	}

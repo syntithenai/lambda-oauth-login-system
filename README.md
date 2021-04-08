@@ -90,6 +90,8 @@ cd api
 sls deploy
 ```
 
+If you don't have credentials, you will be sent to the AWS management console to create an IAM user with appropriate credentials.
+
 
 ## Integration 
 

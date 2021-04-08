@@ -13,9 +13,11 @@ import ExternalLogin from './ExternalLogin';
 import LoginSuccess from './LoginSuccess';
 import DoConfirm from './DoConfirm';
 import DoForgot from './DoForgot';
+import waitingImage from './waiting_image'
+
 
 import {getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString} from './helpers';
 //export default LoginSystem;
-export {DoConfirm, DoForgot, getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, LoginSuccess, LoginSystem,Login,Logout,OAuth,Profile,Register,ForgotPassword, RegistrationConfirmation, TermsOfUse, LoginSystemContext, ExternalLogin} 
+export {DoConfirm, DoForgot, getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, LoginSuccess, LoginSystem,Login,Logout,OAuth,Profile,Register,ForgotPassword, RegistrationConfirmation, TermsOfUse, LoginSystemContext, ExternalLogin, waitingImage} 
 
 //

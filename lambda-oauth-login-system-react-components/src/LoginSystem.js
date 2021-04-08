@@ -12,9 +12,17 @@ import DoForgot from './DoForgot'
 import TermsOfUse from './TermsOfUse'
 import ForgotPassword from './ForgotPassword'
 import RegistrationConfirmation from './RegistrationConfirmation'
-
+import waitingImage from './waiting_image'
 import OAuth from './OAuth'
 import {getAxiosClient} from './helpers'  
+
+function Blank(props) {
+	if (props.doLoginRedirect) {
+		return <Redirect to={props.doLoginRedirect} />
+	} else {
+		return <b>Checking Login ....</b>
+	}
+}
 
 export default  class LoginSystem extends Component {
     
@@ -22,10 +30,10 @@ export default  class LoginSystem extends Component {
         super(props);
         this.timeout = null;
         this.refreshInterval = null;
-        this.state={message:null, buttons: []};
-        // XHR
-        this.submitWarning = this.submitWarning.bind(this);
+        this.state={buttons: [], waiting: false};
         this.refreshTimeout = null
+        this.startWaiting = props.startWaiting ? props.startWaiting : this.startWaiting.bind(this)
+        this.stopWaiting = props.stopWaiting ? props.stopWaiting : this.stopWaiting.bind(this)
     };
 	
 	componentDidMount() {
@@ -39,47 +47,49 @@ export default  class LoginSystem extends Component {
 			})
 		}
 	}
-	
-    submitWarning(warning) {
-        let that=this;
-        clearTimeout(this.timeout);
-        this.setState({'message':warning});
-        this.timeout = setTimeout(function() {
-            that.setState({'message':''});
-        },6000);
-    };
- 
+	     
+     startWaiting() {
+		 this.setState({waiting: true})
+	 }
+    
+     stopWaiting() {
+		 this.setState({waiting: false})
+	 }
+
+
     render() {
-		
-		//console.log(this.props)
 		let that = this;
 		// prevent leading slash in root links
 		var linkBase = that.props.match && that.props.match.path ? ( that.props.match.path === "/" ? '' : that.props.match.path ) : ''
-		 let callBackFunctions = {
-			loginServer: this.props.loginServer,
-            logout : this.props.logout,
-            isLoggedIn : this.props.isLoggedIn,
-            saveUser : this.props.saveUser,
-            setUser:  this.props.setUser,
-            setIframeUser:  this.props.setIframeUser,
-            submitWarning : this.submitWarning,
-            user:this.props.user,
+		 let callBackFunctions = Object.assign({},this.props,{
+			//loginServer: this.props.loginServer,
+            //logout : this.props.logout,
+            //isLoggedIn : this.props.isLoggedIn,
+            //saveUser : this.props.saveUser,
+            //setUser:  this.props.setUser,
+            //testIframeLogin:  this.props.testIframeLogin,
+            //submitWarning : this.props.submitWarning,
+            //user:this.props.user,
+            //loginButtons: this.props.loginButtons,
+            //useRefreshToken: this.props.useRefreshToken,
+            //loadUser: this.props.loadUser,
+            //logoutRedirect : this.props.logoutRedirect,
+            //loginRedirect : this.props.loginRedirect,
+            //allowedOrigins: this.props.allowedOrigins,
+            //showCloseButton: this.props.showCloseButton,
+            //pollAuthSuccess: this.props.pollAuthSuccess,
+            //history: this.props.history,
+            //match: this.props.match,
+            //location: this.props.location,
+            //hideButtons: this.props.hideButtons,
+            //startPollLoginSuccess: this.props.startPollLoginSuccess,
             message: this.state.message,
-            loginButtons: this.props.loginButtons,
-            useRefreshToken: this.props.useRefreshToken,
-            loadUser: this.props.loadUser,
-            logoutRedirect : this.props.logoutRedirect,
-            loginRedirect : this.props.loginRedirect,
-            allowedOrigins: this.props.allowedOrigins,
-            showCloseButton: this.props.showCloseButton,
-            pollAuthSuccess: this.props.pollAuthSuccess,
-            history: this.props.history,
-            match: this.props.match,
-            location: this.props.location,
             linkBase: linkBase,
-            hideButtons: this.props.hideButtons,
-            buttons: this.state.buttons
-        };
+            buttons: this.state.buttons,
+            startWaiting: this.startWaiting,
+            stopWaiting: this.stopWaiting
+            
+        });
         if (this.state.authRequest) {
 			return <div className='pending-auth-request' ><Link to={`${linkBase}/auth`} className='btn btn-success'  >Pending Authentication Request</Link></div>
 				
@@ -88,12 +98,11 @@ export default  class LoginSystem extends Component {
             
             return (
 				<div>
-                {this.state.message && <div className='warning-message' style={{zIndex:99,clear:'both', position:'fixed', top: 100, left:200, minWidth: '200 px', backgroundColor:'pink', border:'2px solid red', padding: '1em',  borderRadius:'10px', fontWeight: 'bold', fontSize:'1.1em'}} >{this.state.message}</div>}
-          
+				{(this.props.waiting || this.state.waiting) && <div className="overlay" style={{zIndex:999, position:'fixed', top: 0, left:0, width:'100%', height:'100%', opacity: 0.5, backgroundColor:'grey'}} onClick={this.stopWaiting} ><img style={{position: 'fixed' ,top: '100px', left: '100px', width: '100px', height: '100px'}} src={waitingImage} /></div>}
                 <Router>
                     <Switch>
 						<Route  path={`${linkBase}/`} exact render={(props) => <Login {...callBackFunctions} isRoot={true}   />}  />
-						<Route  path={`${linkBase}/profile`}  render={(props) => <Profile  {...callBackFunctions}   />}  />
+						<Route  path={`${linkBase}/profile`}  render={(props) => <Profile  {...callBackFunctions}   />}  /> 
 						<Route  path={`${linkBase}/login`}  render={(props) => <Login {...callBackFunctions}   />}  />
 						<Route  path={`${linkBase}/register`}  render={(props) => <Register {...callBackFunctions}   />}  />
 						<Route  path={`${linkBase}/registerconfirm`}  render={(props) => <RegistrationConfirmation {...callBackFunctions}   />}  />
@@ -102,7 +111,7 @@ export default  class LoginSystem extends Component {
 						<Route  path={`${linkBase}/forgot`}  render={(props) => <ForgotPassword {...callBackFunctions}   />}  />
 						<Route  path={`${linkBase}/privacy`}  render={(props) => <TermsOfUse {...callBackFunctions}   />}  />
 						
-						<Route  path={`${linkBase}/blank`} exact render={(props) => <b>Checking Login ....</b>}  /> 
+						<Route  path={`${linkBase}/blank`} exact render={(props) => <Blank {...callBackFunctions} />}  /> 
 						<Route  path={`${linkBase}/success`} render={(props) => <LoginSuccess {...callBackFunctions}   />}   /> 
 						<Route  path={`${linkBase}/doconfirm`} render={(props) => <DoConfirm  {...callBackFunctions}   />}   /> 
 						<Route  path={`${linkBase}/dorecover`} render={(props) => <DoForgot {...callBackFunctions}   />}   /> 

@@ -2,6 +2,39 @@ import axios from 'axios'
 import md5 from 'md5'
 import https from 'https'
 
+function isEditable(record,user) {
+	if (user && user.is_admin) {
+		return true
+	} else if (user && record && record.user && user._id && record.user === user._id) {
+		return true
+	}
+	return false
+}
+
+function getDistinct(axiosClient, restUrl, modelType ,field) {
+	return new Promise(function(resolve,reject) {
+		axiosClient.get(restUrl+modelType+'?distinct='+field,
+		  {},{
+			headers: {
+				'Content-Type': 'application/json'
+			  },
+		  }
+		).then(function(res) {
+		  //console.log(['GET many',res])  
+		  if (res && res.data && Array.isArray(res.data)) { 
+			  var sorted = res.data.sort(function(a,b) { if (a && b &&  a.toLowerCase().trim() < b.toLowerCase().trim()) {return -1} else {return 1}})
+			  //console.log(sorted) 	
+			resolve(sorted)
+		  } else {
+			  resolve([])
+		  }
+		}).catch(function(res) {
+		  //console.log(res)  
+		  reject({error: 'Invalid request error'})
+		})
+	})
+}
+
 function getCookie(name) {
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
@@ -62,6 +95,38 @@ function getAxiosClient(accessToken)	{
 	return axios.create(axiosOptions);
 }
 
+    function uniquifyArray(a) {
+        ////console.log(['UNIQARRAY',a])
+        if (Array.isArray(a)) {
+            var index = {}
+            a.map(function(value) {
+                index[value] = true 
+                return null
+            })
+            return Object.keys(index)
+        } else {
+            return []
+        }
+    }
+    
+    function generateObjectId() {
+		var timestamp = (new Date().getTime() / 1000 | 0).toString(16);
+		return timestamp + 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function() {
+			return (Math.random() * 16 | 0).toString(16);
+		}).toLowerCase();
+	}
+	  
+	function YouTubeGetID(url){
+		url = url.split(/(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/);
+		return undefined !== url[2]?url[2].split(/[^0-9a-z_\-]/i)[0]:url[0];
+	}
+	
+	function decodeFromBase64(base64DataString) {
+		const parts = base64DataString.split(';base64,')
+		if (parts.length > 1) {
+			const buffer = Buffer.from(parts[1], 'base64');
+			return buffer
+		}
+	};
 
-
-export {scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath}
+export {isEditable, getDistinct, decodeFromBase64, generateObjectId,uniquifyArray,scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath, YouTubeGetID}

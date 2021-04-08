@@ -40,8 +40,12 @@ class App extends Component {
       <div className="App">
             <LoginSystemContext  
 				loginServer={loginServer}
+				logoutRedirect={'/'}
+			    loginRedirect={'/profile'}
+			    buttons={['google','twitter','facebook','github','amazon']}
+			    startWaiting={that.startWaiting} stopWaiting={that.stopWaiting} 
             >
-            {(user,setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout, loginServer, allowedOrigins) => {
+            {(loginProps) => {
                   return  <React.Fragment>
                        {this.state.waiting && <div className="overlay" onClick={this.stopWaiting} >LOADING</div>}
                         <header className="App-header">
@@ -49,14 +53,11 @@ class App extends Component {
                                 <div style={{width:'70%'}}>
                                     <Route path='/'  render={
                                     (props) => <LoginSystem  
-                                       loginServer={loginServer}
+                                       {...loginProps}
                                        match={props.match}
                                        location={props.location}
                                        history={props.history}
-                                       logoutRedirect={'/'}
-                                       loginRedirect={'/profile'}
-                                       buttons={['google','twitter','facebook','github','amazon']}
-                                       user={user} setUser={setUser} isLoggedIn={isLoggedIn} logout={logout}  startWaiting={that.startWaiting} stopWaiting={that.stopWaiting} allowedOrigins={allowedOrigins}
+                                       
                                      />}
                                      />
                                 </div>

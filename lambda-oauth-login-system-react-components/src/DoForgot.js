@@ -8,35 +8,38 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default  class DoForgot extends Component {
 	
-constructor(props) {
+	constructor(props) {
         super(props);
         this.state={redirect: null, error: null};
     }
     
     componentDidMount() {
 		let that = this
-		const axiosClient = getAxiosClient();
-		axiosClient({
-		  url: that.props.loginServer+'/api/dorecover' + window.location.search,
-		  method: 'get',
-		}).then(function(res) {
-			return res.data;  
-		}).then(function(data) {
-			if (data.user && data.user.username && data.user.username.trim()) {
-				that.props.setUser(data.user)
-				if (that.props.testIframeLogin) that.props.testIframeLogin(data.user)
-				that.setState({redirect:that.props.loginRedirect})
-			}
-			if (data.error) that.setState({error: data.error})
-		}).catch(function(err) {
-			console.log(err);
-		});
+		if (that.props.startPollForgotSuccess) {
+			//console.log(this.state)
+			that.props.startPollForgotSuccess(window.location.search)
+		} else {
+			const axiosClient = getAxiosClient();
+			axiosClient({
+			  url: that.props.loginServer+'/api/dorecover' + window.location.search,
+			  method: 'get',
+			}).then(function(res) {
+				return res.data;  
+			}).then(function(data) {
+				if (data.user && data.user.username && data.user.username.trim()) {
+					that.props.setUser(data.user)
+					that.setState({redirect:that.props.loginRedirect})
+				} 
+				if (data.error) that.setState({error: data.error})
+			}).catch(function(err) {
+				console.log(err);
+			});
+		}
 
 	}
  
     render() {
 		if (this.state.redirect) {
-			//window.location.search = ''
 			return <Redirect to={this.state.redirect} />
 		} else if (this.state.error ) {
 			return <b>

@@ -47,6 +47,7 @@ functions:
       - http:
           path: /{pathvar+}
           method: ANY
+     
 
 plugins:
   - serverless-offline

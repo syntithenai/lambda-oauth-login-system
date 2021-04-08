@@ -28,7 +28,8 @@ module.exports = {
    encryptedPasswords: process.env.encryptedPasswords && process.env.encryptedPasswords.toUpperCase() === "TRUE" ? true : false ,
    csrfCheck: process.env.csrfCheck && process.env.csrfCheck.toUpperCase() === "TRUE" ? true : false ,
    // server routes only
-   userFields:process.env.userFields ? process.env.userFields : ['name','username','avatar'],
+   userFields:process.env.userFields ? process.env.userFields : ['name','avatar','username'],
+   allowedUsers:process.env.allowedUsers,
     // jwt
     jwtIssuer: process.env.jwtIssuer ,
     jwtAccessTokenSecret: process.env.jwtAccessTokenSecret ,
