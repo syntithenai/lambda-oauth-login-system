@@ -330,8 +330,8 @@ export default class ExternalLogin   extends Component {
 			if (that.refreshTimeout) clearTimeout(that.refreshTimeout)
 			that.refreshTimeout = setTimeout(function() {
 				that.createLoginIframe()
-			},that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 840000 )
-		},10000)
+			},that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 600000 )
+		},15000)
 	}
 
 	doCreateLoginFrame() {
@@ -364,8 +364,8 @@ export default class ExternalLogin   extends Component {
 			if (that.refreshTimeout) clearTimeout(that.refreshTimeout)
 			that.refreshTimeout = setTimeout(function() {
 				that.createLoginIframe()
-			},that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 840000 )
-		},10000)
+			},that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 600000 )
+		},15000)
 	}
 
 	createLoginIframe() {

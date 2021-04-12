@@ -15,6 +15,8 @@ const mongoose = require('mongoose')
 const restify = require('express-restify-mongoose')
 const loginSystem = require('express-oauth-login-system-server')
 const path = require('path')
+require('dotenv').config()
+
 //let config = require('./authconfig');
 //console.log(config)
 const app = express()

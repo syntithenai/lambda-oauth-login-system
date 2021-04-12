@@ -19,9 +19,9 @@ export default function NavbarComponent(props) {
 				  </Dropdown.Toggle>
 
 				  <Dropdown.Menu style={{zIndex:9999}} >
-					<Dropdown.Item href="#/editor">Editor</Dropdown.Item>
+					<Dropdown.Item href="#/questions">Editor</Dropdown.Item>
 					<Dropdown.Item  href="#/login/profile">Profile</Dropdown.Item>
-					<Dropdown.Item   href="#/test">Test</Dropdown.Item>
+					
 				  </Dropdown.Menu>
 				</Dropdown>}
 				

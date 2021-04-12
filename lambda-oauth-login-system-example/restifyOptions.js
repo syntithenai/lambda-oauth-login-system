@@ -46,7 +46,7 @@ function getOptions(config,overrides) {
 			},
 			
 			preDelete: (req, res, next) => {
-				//console.log(['PREDELETE',res.locals.user])
+				console.log(['PREDELETE',res.locals.user])
 
 			  if (res.locals.user && res.locals.user._id ) {
 					if ((req.body.user && req.body.user === res.locals.user._id) || res.locals.user.is_admin)  {
@@ -74,7 +74,7 @@ function getOptions(config,overrides) {
 			postDelete: (req, res, next) => {
 				//console.log('PDEL MAS')
 				//console.log(req)
-			  	if (config.postDelete) config.postDelete(req,res,next)
+			  	if (config && config.postDelete) config.postDelete(req,res,next)
 				else next()
 			}
 			

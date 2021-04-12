@@ -26,7 +26,7 @@ export default function ItemForm(props) {
 	const axiosClient = props.isLoggedIn() ? getAxiosClient(props.user.token.access_token) : getAxiosClient()
 	
 	var fieldMeta = props.fieldMeta ? props.fieldMeta : {}
-	
+	//console.log(fieldMeta)
 	//const props.tagsDB = useLocalForageAndRestEndpoint({modelType:'tags',axiosClient:axiosClient,restUrl:'/dev/handler/rest/api/v1/'})
 	//const writabletopicsDB = useLocalForageAndRestEndpoint({modelType:'topics',axiosClient:axiosClient,restUrl:'/dev/handler/rest/api/v1/'})
 	//useEffect(function() {
@@ -37,7 +37,7 @@ export default function ItemForm(props) {
 	////const tags = getDistinct('tags','title')
 	const editable = true //isEditable(props.item,props.user)
 	//console.log(props)
-	return <div>
+	return <div key={props.itemkey ? props.itemkey: 'none'} >
 	{fieldMeta && Array.isArray(fieldMeta.groups) && fieldMeta.groups.map(function(group,gkey) {
 		return <Form.Group key={gkey} ><Row>
 			{(group && group.label) && <b>{group.label}</b>}
@@ -54,16 +54,16 @@ export default function ItemForm(props) {
 						return item[field.field]
 					}
 				}
+				
 				const onChange = typeof field.onChange === "function" ? field.onChange : function(value) { if (props.saveField) props.saveField(field.field,value,props.item,props.itemkey)}
+				
 				return <Col key={fieldKey} xs={field.width > 0 ? field.width : 'auto'}>
 					{(field && field.label) && <Form.Label  >{field.label}</Form.Label>}
 			
-					{(editable && field.component) && field.component(Object.assign({},{value:getFieldValue(props.item),displayValue:getFieldDisplayValue(props.item),onChange: onChange }, (field.props ? field.props : {})  ))}
+					{(editable && field.component) && field.component(Object.assign({},{value:getFieldValue(props.item),displayValue:getFieldDisplayValue(props.item),onChange: onChange , axiosClient: axiosClient, isLoggedIn: props.isLoggedIn, user: props.user}, (field.props ? field.props : {})  ))}
 						
 					{!editable && <span>{getFieldDisplayValue(props.item)}</span>}
 
-					
-					
 				</Col>
 			})}
 		</Row></Form.Group >

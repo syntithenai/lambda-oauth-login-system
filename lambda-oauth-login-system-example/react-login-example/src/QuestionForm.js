@@ -73,7 +73,7 @@ export default function QuestionForm(props) {
 			options={Array.isArray(props.topics) ? props.topics.map(function(topic) { return (topic && props.user && (props.user.is_admin || (props.user.avatar && topic.indexOf(props.user.avatar) !== -1)) ) ? topic : null}) : []} />}
 			
 		{!editable && <h4>{props.item.quiz}</h4>}
-	<Form.Label style={{float:'right', paddingRight:'2em'}} >Tags 
+		<Form.Label style={{float:'right', paddingRight:'2em'}} >Tags 
 			{editable && <TagsComponent suggestions={Array.isArray(props.tags) ? props.tags.map(function(tag) { return tag}) : []} value={props.item.tags} onChange={function(value) { props.saveField('tags',value,props.item,props.itemkey)}} />
 			}
 			{(!editable && Array.isArray(props.item.tags)) && <b>&nbsp;{props.item.tags.join(",")}</b>}

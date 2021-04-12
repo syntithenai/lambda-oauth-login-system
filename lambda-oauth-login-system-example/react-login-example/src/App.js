@@ -15,14 +15,18 @@ import DropDownComponent from './components/DropDownComponent'
 import TextComponent from './components/TextComponent'
 import TextareaComponent from './components/TextareaComponent'
 
+import ItemSingle from './components/ItemSingle'
 import ItemList from './components/ItemList'
+import questionsMeta from './formMeta/questionsMeta'
+import questionMnemonicMeta from './formMeta/questionMnemonicMeta'
 
 //import useLocalForageAndRestEndpoint from './useLocalForageAndRestEndpoint'
 import {getAxiosClient, getDistinct} from './helpers'  
 import useLocalForageAndRestEndpoint from './useLocalForageAndRestEndpoint'
 const localForage = require('localforage')
 
-
+const autoRefresh = false 
+ 
 const RESTURL='/dev/handler/rest/api/v1/'
 function App(props) {
 	
@@ -41,17 +45,23 @@ function App(props) {
 	useEffect(function() {
 		localForageLookups.getItem('tags').then(function(t) {
 			setTags(t)
-			getDistinct(axiosClient,RESTURL,'questions','tags').then(function(t) {
-				setTags(t)
-				localForageLookups.setItem('tags',t)
-			})
+			if (!Array.isArray(t) || autoRefresh) {
+				getDistinct(axiosClient,RESTURL,'questions','tags').then(function(t) {
+					console.log('APPDISTINCT TAGS')
+					setTags(t)
+					localForageLookups.setItem('tags',t)
+				})
+			}
 		})
 		localForageLookups.getItem('topics').then(function(t) {
 			setTopics(t)
-			getDistinct(axiosClient,RESTURL,'questions','quiz').then(function(t) {
-				setTopics(t)
-				localForageLookups.setItem('topics',t)
-			})
+			if (!Array.isArray(t) || autoRefresh) {
+				getDistinct(axiosClient,RESTURL,'questions','quiz').then(function(t) {
+					console.log('APPDISTINCT TOPICS')
+					setTopics(t)
+					localForageLookups.setItem('topics',t)
+				})
+			}
 		}) 
 		
 		//tagsDB.searchItemsNow({},function(tags) {
@@ -92,7 +102,7 @@ function App(props) {
 	 return (
 		 <ExternalLogin  
 				loginServer={loginServer}
-				loginRedirect={'/loggedin'}	
+				loginRedirect={'/test'}	
 				logoutRedirect={'/'}
 				buttons={['google','twitter','facebook','github','amazon']}
 				refreshInterval={6000000}
@@ -109,9 +119,34 @@ function App(props) {
 						 tags: tags,
 						 topics: topics,
 						 setTags: setTags,
-						 setTopics: setTopics					
+						 setTopics: setTopics,
+						 autoRefresh: autoRefresh
 					 })
-						 return  <React.Fragment>
+					 const questionSingleProps = Object.assign({},editorProps, {
+						 modelType: 'questions', 
+						 populate: [{"path":"mnemonics"},{"path":"comments"},{"path":"multipleChoiceQuestions"}], 
+						 fieldMeta: questionsMeta,
+						 createItem: function(value) {
+							 console.log('createIteddm')
+							console.log(value)
+				
+							return {quiz: value} 
+						 }
+					 })
+					 const questionListProps = Object.assign({},questionSingleProps,{
+						itemSize: function(key,items,searchFilter) {return 1050},
+						useCategorySearch: "quiz",
+						//categoryOptions: topics,
+						sortOptions: {_id: 'ID', question: 'Question', answer: 'Answer',updated_date: 'Updated Date'},
+						defaultSort: {question:1},
+						minimumBatchSize: 20
+					 })
+					 //const questionMnemonicSingleProps = {
+						 //modelType: 'mnemonics', 
+						 //fieldMeta: questionMnemonicMeta						 
+					 //}
+					 
+					 return  <React.Fragment>
 					  
 					  <Router >
 					    
@@ -119,84 +154,41 @@ function App(props) {
                        
 					    <NavbarComponent loginCheckActive={loginContext.loginCheckActive} itemsQueued={itemsQueued}  user={loginContext.user} queueActive={queueActive} isLoggedIn={loginContext.isLoggedIn}   />
 					    
-						<div style={{height: '6em'}} ></div>
-						<div className="d-none d-md-block d-lg-none" style={{ height:'2em'}}  ></div>	
-						<div className="d-none d-sm-block d-md-none" style={{height: '3em'}} ></div>	
-					    <div className="d-block d-sm-none" style={{height: '4em'}} ></div>	
-					    <Switch>
+						<Switch>
 							<Route  path={`/login`}  render={(props) => <LoginSystem  {...loginContext} hideButtons={true}  match={props.match}  history={props.history}  location={props.location}  />}  />
 							
-							<Route  path={`/test`}  render={(props) => <ItemList  {...loginContext} 
+							<Route  path={`/questions/new/:topic`}  render={(props) => <ItemSingle  {...questionSingleProps} 
 								match={props.match}  history={props.history}  location={props.location} 
-								modelType="questions"
-								items={[
-									{quiz:"stuff" ,question:'aaaa',answer:'walk',_id:'5be3cf1ff8ab4600852a6742'}, 
-									{quiz:"stuff" ,question:'ddd',answer:'swim',_id:'5be3cf1ff8ab4600852a6740'},
-									{quiz:"stuff" ,question:'cccc',answer:'fun',_id:'5be3cf1ff8ab4600852a1742'}, 
-									{quiz:"stuff" ,question:'ffff',answer:'sleep',_id:'5be3cf1ff8ab4600852a6730'}
-								]} 
-								useCategorySearch="quiz"
-								populate={[{"path":"mnemonics"},{"path":"comments"},{"path":"multipleChoiceQuestions"}]}
-								fieldMeta={{
-									groups:[
-										{key:'g1', title:'Group 1', fields:[
-											{
-												field:'question',
-												label:'Question',
-												width: 8,
-												component:TextComponent,
-												props:{}
-											},
-											{
-												field:'question',
-												label:'Question',
-												component:DropDownComponent,
-												width: 4,
-												props:{options:['aaa','bbb']}
-											}
-										]},
-										{key:'g2',title:'Group 2', fields:[
-											{
-												field:'answer',
-												label:'Answer',
-												component:TextareaComponent,
-												props:{}
-											},
-											{
-												field:'discoverable',
-												label:'Discoverable',
-												component:CheckboxComponent,
-												props:{}
-											}
-										]},
-										{key:'g3',title:'Group 3', fields:[
-											{
-												field:'answer2',
-												label:'Answer2',
-												component:TextComponent,
-												props:{}
-											},
-											{
-												field:'media',
-												label:'Media',
-												component:MediaEditorComponent,
-												props:{}
-											}
-										]}
-									]
-								}}	
-								
-								
-							/>}  />
+							  />}
+							/>
+							<Route  path={`/questions/new`}  render={(props) => <ItemSingle  {...questionSingleProps} 
+								match={props.match}  history={props.history}  location={props.location} 
+							  />}
+							/>
+							<Route  path={`/questions/:id`}  render={(props) => <ItemSingle  {...questionSingleProps} 
+								match={props.match}  history={props.history}  location={props.location} 
+							  />}
+							/>
 							
 							
-							<Route  path={`/editor/new/:topic`}  render={(props) => <QuestionEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}  />
+							<Route  path={`/questions`}  render={(props) => <ItemList  {...questionListProps} 
+								match={props.match}  history={props.history}  location={props.location} 
+								dliveSearchFilter={function(value,item) {
+									if (item) {
+										if (item.question && item.question.indexOf(value) !== -1) {
+											return true
+										} else if (item.answer && item.answer.indexOf(value) !== -1) {
+											return true
+										} else if (item.feedback && item.feedback.indexOf(value) !== -1) {
+											return true
+										}
+									}
+									return false 
+								}}
+								/>}  
+							/>
 							
-							<Route  path={`/editor/new`}  render={(props) => <QuestionEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}  />
-							
-							<Route  path={`/editor/:id`}  render={(props) => <QuestionEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}  />
-							
-							<Route  path={`/editor`}  render={(props) => <QuestionsEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}  />
+							  />
 							
 							<Route  path={`/loggedin`} component={function(props) {return <b>{loginContext.isLoggedIn() && <b>Logged In => {JSON.stringify(loginContext.user)}</b>}{!loginContext.isLoggedIn() && <b>NOT Logged In</b>}</b>   }} />
 						</Switch>
@@ -209,6 +201,55 @@ function App(props) {
 }
 
 export default App;
+
+
+
+							//<Route  path={`/editor/new/:topic`}  render={(props) => <QuestionEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}  />
+							
+							//<Route  path={`/editor/new`}  render={(props) => <QuestionEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}  />
+							
+							//<Route  path={`/editor/:id`}  render={(props) => <QuestionEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}  />
+							
+							//<Route  path={`/editor`}  render={(props) => <QuestionsEditor  {...editorProps}  match={props.match}  history={props.history}  location={props.location}  />}
+
 //startWaiting={startWaiting} stopWaiting={stopWaiting}
 //
-                
+  //ditems={[
+									//{quiz:"stuff" ,question:'aaaa',answer:'walk',_id:'5be3cf1ff8ab4600852a6742'}, 
+									//{quiz:"stuff" ,question:'ddd',answer:'swim',_id:'5be3cf1ff8ab4600852a6740'},
+									//{quiz:"stuff" ,question:'cccc',answer:'fun',_id:'5be3cf1ff8ab4600852a1742'}, 
+									//{quiz:"stuff" ,question:'ffff',answer:'sleep',_id:'5be3cf1ff8ab4600852a6730'}
+								//]} 
+								//ditemSize={function(key,items,searchFilter) {
+									//var size=1050
+									//console.log(['appi size',key,items,searchFilter])
+									//var item = items && items.length > key && items[key]._id ? items[key] : null
+									//if (item) {
+										//if (item.question && item.question.indexOf(searchFilter) !== -1) {
+											//return size
+										////}
+										 ////else if (item.answer && item.answer.indexOf(searchFilter) !== -1) {
+											////return size
+										////} else if (item.feedback && item.feedback.indexOf(searchFilter) !== -1) {
+											////return size
+										//} else {
+											//return 1;
+										//}
+									//} else {
+										//return 1
+									//}
+								//} }
+								
+								//ddefaultSortLabel="Question Asc" 
+								//dliveSearchFilter={function(value,item) {
+									//if (item) {
+										//if (item.question && item.question.indexOf(value) !== -1) {
+											//return true
+										//} else if (item.answer && item.answer.indexOf(value) !== -1) {
+											//return true
+										//} else if (item.feedback && item.feedback.indexOf(value) !== -1) {
+											//return true
+										//}
+									//}
+									//return false 
+								//}}              

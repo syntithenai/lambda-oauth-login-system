@@ -7,9 +7,9 @@ const DropDownComponent = function(props) {
     
     return <Dropdown  as={ButtonGroup}>
           <Dropdown.Toggle variant={props.variant ? props.variant : 'primary'} split  size="sm"  id="dropdown-split-basic" ></Dropdown.Toggle>
-          <Button   size="sm" variant={props.variant ? props.variant : 'primary'}  >{props.value ? (props.title ? props.title + " - " : "") + props.value : props.title} </Button>
+          <Button   size="sm" variant={props.variant ? props.variant : 'primary'}  >{props.value ? (props.title ? props.title + " - " : "") + props.value : (props.title ? props.title : '')} </Button>
           <Dropdown.Menu variant={props.variant ? props.variant : ''}  >
-              <form  style={{display:'inline'}} onSubmit={function(e) {e.preventDefault(); props.onChange(filterValue)  }} >
+              
             	{filterValue && <Button pill="true" variant="danger" size="sm"  style={{ float:'left', fontWeight:'bold', height:'2em', paddingTop:'0.5em', paddingBottom:'0.5em'}}  onClick={function(e) {e.preventDefault() ;  setFilterValue(''); props.onChange('')}} >Reset</Button>}
 					
                 {(filterValue && props.createOption) && <Button pill="true" size="sm" style={{ float:'left', fontWeight:'bold', height:'2em', paddingTop:'0.5em', paddingBottom:'0.5em'}}  onClick={function(e) {e.preventDefault() ; props.createOption(filterValue); props.onChange(filterValue)}} variant="success" >Create</Button>}
@@ -18,7 +18,7 @@ const DropDownComponent = function(props) {
                   <input type="text" className="form-control" onChange={function(e) {setFilterValue(e.target.value)}}
                 value={filterValue} />
 			    </InputGroup>
-              </form>
+			    <div style={{overflow: 'scroll', height: window.innerHeight * 0.7}}>
               {Array.isArray(props.options) && props.options.map(function(optionKey,i) {
                   ////console.log([optionKey, filterValue])
                    if (filterValue.trim().length === 0 || (optionKey && optionKey.toLowerCase().indexOf(filterValue.toLowerCase()) !== -1)) {
@@ -31,6 +31,7 @@ const DropDownComponent = function(props) {
 						}
                    } else return null;
               })}
+              </div>
           </Dropdown.Menu>
       </Dropdown>
 
