@@ -4,8 +4,8 @@ const localForage = require('localforage')
 const reducer = require('./reducer')
 			
 export default function useLocalForageAndRestEndpoint(options) {
-   //console.log('new localforagerestendoint')
-    const {axiosClient,restUrl,autoSaveDelay,startWaiting,stopWaiting,onItemQueued,onStartSaveQueue,onFinishSaveQueue, modelType, populate, useCategorySearch, minimumBatchSize, defaultSort, defaultSortLabel} = options
+   //console.log(['new localforagerestendoint',options])
+    const {axiosClient,restUrl,autoSaveDelay,startWaiting,stopWaiting,onItemQueued,onStartSaveQueue,onFinishSaveQueue, modelType, populate, useCategorySearch, minimumBatchSize, defaultSort, autoRefresh, user, createIndexes} = options
 	var localForages = {}
 	const [items, dispatch] = useReducer(reducer,[]);
 	//const [autoSaveTimeoutTimeout, setAutoSaveTimeoutTimeout] = useState(null)
@@ -13,16 +13,115 @@ export default function useLocalForageAndRestEndpoint(options) {
 	const [searchFilter,setSearchFilterI] = useState(localStorage ? localStorage.getItem(modelType + 'SearchFilter') : '')
 	const [categorySearchFilter,setCategorySearchFilterI] = useState(localStorage ? localStorage.getItem(modelType + 'CategorySearchFilter') : '')
 	const [sort,setSortInner] = useState(defaultSort ? defaultSort : {'_id': -1})
-	const [sortLabel, setSortLabel] = useState(defaultSortLabel ? defaultSortLabel : '')
+	//const [sortLabel, setSortLabel] = useState(defaultSortLabel ? defaultSortLabel : '')
+	const [hasNextPage,setHasNextPage] = useState(true)
+	const [itemCount,setItemCount] = useState(0)
+	
+	function createLocalIndex(item) {
+		if (createIndexes) {
+			console.log(['CLI',createIndexes,item])
+			Object.keys(createIndexes).forEach(function(key) {
+				var indexToCreate = createIndexes[key]
+				if (typeof indexToCreate === "function") {
+					var indexValue = indexToCreate(item)
+					if (indexValue) {
+						var localForageIndexes = localForage.createInstance({name:modelType,storeName:'index-'+ key + (user && user._id ? '-'+user._id : '')});
+						localForageIndexes.setItem(indexValue,item._id)
+					}
+				}
+			})
+		}
+	}
+	
+	function removeLocalIndex(item) {
+		console.log(['RLI',createIndexes,item])
+		if (createIndexes) {
+			Object.keys(createIndexes).forEach(function(key) {
+				var indexToCreate = createIndexes[key]
+				if (typeof indexToCreate === "function") {
+					var indexValue = indexToCreate(item)
+					if (indexValue) {
+						var localForageIndexes = localForage.createInstance({name:modelType,storeName:'index-'+ key + (user && user._id ? '-'+user._id : '')});
+						localForageIndexes.removeItem(indexValue)
+					}
+				}
+			})
+		}
+	}
+	
+	function getItemFromIndexValue(index, value) {
+		//console.log(['get from index value',index,value,createIndexes,user?user._id:null])
+		const {localForageItems} = initLocalForage(modelType)
+		return new Promise(function(resolve, reject) {
+			if (createIndexes && value) {
+				var found = false
+				var keys = Object.keys(createIndexes)
+				for (var i = 0; i < keys.length; i++ ) {
+					var key = keys[i]
+					if (key && key === index) {
+						//var indexName = createIndexes[key]
+						//if (typeof indexToCreate === "function") {
+							//var indexValue = indexToCreate(item)
+							//if (indexValue) {
+						found = true
+						var localForageIndexes = localForage.createInstance({name:modelType,storeName:'index-'+ key + (user && user._id ? '-'+user._id : '')});
+						localForageIndexes.getItem(value).then(function(resultId) {
+							if (resultId) {
+								//console.log(['get from index value got id',resultId])
+								localForageItems.getItem(resultId).then(function(result) {
+									//console.log(['get from index value got obj',result])
+									resolve(result)
+								})
+							} else {
+								resolve(null)
+							}
+						})
+							//}
+						//}
+					} 
+				}
+				if (!found) resolve(null)
+			} else {
+				resolve(null)
+			}
+		})
+	}
+	
+	/**
+	 * Find items in local storage
+	 * filter supports 
+	 * - field match (regex or complete)
+	 * - some ops $eq, $ne, $gt, $lt, ..
+	 * - indexes
+	 */
+	//function findItems(filter) {
+		
+	//}
+	
 	
 	function setSort(sort) {
 		setSortInner(sort)
 		console.log(['SETSORT',JSON.stringify(sort)])
-		if (startWaiting) startWaiting()
-		searchItems(getSearchFilter(), function(iitems) {
-			if (stopWaiting) stopWaiting()
-			setItemCount(iitems.length + ((iitems && iitems.length === minimumBatchSize) ? 1 : 0))
-		},minimumBatchSize,0,sort)
+		//if (startWaiting) startWaiting()
+		//searchItems(getSearchFilter(), function(iitems) {
+			//if (stopWaiting) stopWaiting()
+			//setItemCount(iitems.length + ((iitems && iitems.length === minimumBatchSize) ? 1 : 0))
+		//},minimumBatchSize,0,sort)
+		var newItems = items.slice(0)
+		Object.keys(sort).forEach(function(key) {
+			const sortDirection = sort[key] > 0 ? 1 : -1
+			console.log(['SETSORT on ',key])
+			newItems.sort(function(a,b) {
+				//console.log(['SETSORT test ',a[key],b[key]])
+				if (a.hasOwnProperty(key) && b.hasOwnProperty(key) && a[key] < b[key])  {
+					return -1 * sortDirection
+				} else {
+					return 1 * sortDirection
+				}
+			})
+		})
+		console.log(['SETSORT on ',newItems])
+		setItems(newItems)
 	}
 	
 	function setCategorySearchFilter(value) {
@@ -36,14 +135,13 @@ export default function useLocalForageAndRestEndpoint(options) {
 		if (localStorage) localStorage.setItem(modelType + 'SearchFilter',value)
 	}
 
-	const [hasNextPage,setHasNextPage] = useState(true)
-	const [itemCount,setItemCount] = useState(0)
 	
 	function initLocalForage(collection='default') {
-		if (!Array.isArray(localForages[collection])) {
-			var localForageItems = localForage.createInstance({name:modelType,storeName:'items'});
-			var localForageSearches = localForage.createInstance({name:modelType,storeName:'searches'});
-			var localForagePatches = localForage.createInstance({name:modelType,storeName:'patches'});
+		//const userId = (user && user._id) ? user._id : ''
+		if (!localForages[collection]) {
+			var localForageItems = localForage.createInstance({name:modelType,storeName:'items'+(user && user._id ? '-'+user._id : '')});
+			var localForageSearches = localForage.createInstance({name:modelType,storeName:'searches'+(user && user._id ? '-'+user._id : '')});
+			var localForagePatches = localForage.createInstance({name:modelType,storeName:'patches'+(user && user._id ? '-'+user._id : '')});
 			localForages[collection] = {localForageItems, localForageSearches, localForagePatches}
 		}
 		return localForages[collection]
@@ -52,7 +150,7 @@ export default function useLocalForageAndRestEndpoint(options) {
     function getSearchFilter(categorySearchFilterI=null,searchFilterI=null) {
 		var filter = {}
 		// from params or state
-		const asearchFilter = searchFilterI ? searchFilterI : searchFilter
+		const asearchFilter = searchFilterI ? searchFilterI.trim() : searchFilter
 		const acategorySearchFilter = categorySearchFilterI ? categorySearchFilterI : categorySearchFilter
 		if (useCategorySearch && acategorySearchFilter) {
 			if (asearchFilter) {
@@ -153,14 +251,15 @@ export default function useLocalForageAndRestEndpoint(options) {
     }
     
     // EXPOSED METHODS
-    
     function saveField(field, value, item, key, delay) {
 		return new Promise(function (resolve,reject) {
-			//console.log(['savefield',field, value, item, key, delay])
 			if (modelType && field && item && item._id) {
+				//console.log(['savefield saveitem',field, value, item, key, delay])
 				var data = {_id:item._id}
 				data[field] = value
+				//console.log(['savefield saveitem data',data])
 				saveItem(data,key, delay).then(function(newItem) {
+					//console.log(['savefield saved',newItem])
 					resolve(newItem)
 				})
 			} else {
@@ -169,6 +268,8 @@ export default function useLocalForageAndRestEndpoint(options) {
 		})
 	} 
     
+    var autoSaveTimeoutTimeout = null
+    
     function saveItem(data, key=-1, delay=0) {
 		const {localForageItems, localForagePatches} = initLocalForage(modelType)
 		//console.log(['save',modelType, data])
@@ -176,9 +277,12 @@ export default function useLocalForageAndRestEndpoint(options) {
 		if (key >= 0) {
 			//console.log(['merge',key])
 			dispatch({type:'merge',index:key,item:data})
-		}							
+		}	
+		if (autoSaveTimeoutTimeout) clearTimeout(autoSaveTimeoutTimeout)
+															
 		return new Promise(function(resolve,reject) {
 			if (data && data._id)  {
+				console.log(['save do update',data._id])
 				// save changes to localForage patches collection for upload later
 				localForagePatches.getItem(data._id).then(function(patch) {
 					if (typeof patch !== "object" || patch === null || patch === undefined) patch = {} 
@@ -194,14 +298,15 @@ export default function useLocalForageAndRestEndpoint(options) {
 							item = Object.assign({},item,data)
 							// save changes to localForage items
 							localForageItems.setItem(data._id,item).then(function() {
-								//console.log(['saved item',autoSaveDelay])
+								//console.log(['AAA saved item',item,autoSaveDelay, delay])
+								createLocalIndex(item)
 								// trigger upload queue
 								var d = delay > 0 ? delay : (autoSaveDelay > 0 ? autoSaveDelay : 0)
 								if (d > 0) {
-									//console.log(['timeout ?',window.autoSaveTimeoutTimeout])
-									if (window.autoSaveTimeoutTimeout) clearTimeout(window.autoSaveTimeoutTimeout)
+									//console.log(['timeout ?',d])
 									//setQueueActive(true)
-									window.autoSaveTimeoutTimeout = setTimeout(function() {
+									clearTimeout(autoSaveTimeoutTimeout)
+									autoSaveTimeoutTimeout = setTimeout(function() {
 										//console.log('AAAautosave')
 										saveQueue().then(function() {
 											//console.log('saveQ done')
@@ -209,7 +314,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 										})
 									},autoSaveDelay)
 								}
-								resolve(data)
+								resolve(item)
 							})
 							
 						})
@@ -218,6 +323,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 					
 				})
 			} else {
+				//console.log(['save new',data])
 				delete data._id 
 				// new records need to be saved directly to db to create _id
 				return doPost(data).then(function(res) {
@@ -226,6 +332,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 						//console.log(['patch do locasl'])
 						// save changes to localForage items
 						localForageItems.setItem(res.data._id,res.data).then(function(value) {
+								createLocalIndex(res.data)
 								//console.log(['patch locasl',value])
 								// now delete from state
 								//if (stopWaiting) stopWaiting()
@@ -262,7 +369,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 	//}
 	 
 	function saveQueue() {
-		//console.log('dosaveQ')
+		console.log('dosaveQ '+modelType)
 		const {localForagePatches} = initLocalForage(modelType)
 		if (onStartSaveQueue) onStartSaveQueue() 
 		return new Promise(function(resolve,reject) {
@@ -275,36 +382,41 @@ export default function useLocalForageAndRestEndpoint(options) {
 					Promise.all(promises).then(function(data) {
 						var urlParts = restUrl.split("/rest/api/")
 						var url = urlParts[0] + "/rest/bulk/"
-						//console.log(['RURL',url])
-						axiosClient.patch(url+modelType,
-						  data,
-						  {
-							headers: {
-								'Content-Type': 'application/json'
-							  },
-						  }
-						).then(function(res) {
-							//console.log(['done psot',res])
-							if (res && res.data && res.status === 200) { //Array.isArray(res.data) && res.data.length === data.length) {
-								var ipromises = []
-								patchKeys.forEach(function(patchKey) {
-									ipromises.push(localForagePatches.removeItem(patchKey))
-								})
-								Promise.all(ipromises).then(function() {
-									//console.log('cleared patches') 
+						console.log(['RURL',url])
+						if (data && data.length > 0) {
+							axiosClient.patch(url+modelType,
+							  data,
+							  {
+								headers: {
+									'Content-Type': 'application/json'
+								  },
+							  }
+							).then(function(res) {
+								console.log(['done psot',res])
+								if (res && res.data && res.status === 200) { //Array.isArray(res.data) && res.data.length === data.length) {
+									var ipromises = []
+									patchKeys.forEach(function(patchKey) {
+										ipromises.push(localForagePatches.removeItem(patchKey))
+									})
+									Promise.all(ipromises).then(function() {
+										console.log('cleared patches') 
+										if (onFinishSaveQueue) onFinishSaveQueue() 
+										resolve(res.data)
+									})
+								} else {
 									if (onFinishSaveQueue) onFinishSaveQueue() 
-									resolve(res.data)
-								})
-							} else {
-								if (onFinishSaveQueue) onFinishSaveQueue() 
-								resolve({})
-							}
-						  //console.log(res)
-						}).catch(function(res) {
-						  //console.log(res)
-						  if (onFinishSaveQueue) onFinishSaveQueue() 
-						  resolve({})
-						})					
+									resolve({})
+								}
+							  //console.log(res)
+							}).catch(function(res) {
+							  //console.log(res)
+							  if (onFinishSaveQueue) onFinishSaveQueue() 
+							  resolve({})
+							})			
+						} else {
+							if (onFinishSaveQueue) onFinishSaveQueue() 
+							resolve({})
+						}		
 					})
 				} else {
 					if (onFinishSaveQueue) onFinishSaveQueue() 
@@ -331,6 +443,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 						if (res && res.data && res.data._id) {
 							//console.log(['patch do locasl'])
 							localForageItems.setItem(res.data._id,res.data).then(function(value) {
+									createLocalIndex(res.data)
 									//console.log(['patch locasl',value])
 									if (stopWaiting) stopWaiting()
 									
@@ -350,6 +463,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 						if (res && res.data && res.data._id) {
 							//console.log(['patch do locasl'])
 							localForageItems.setItem(res.data._id,res.data).then(function(value) {
+									createLocalIndex(res.data)
 									//console.log(['patch locasl',value])
 									if (stopWaiting) stopWaiting()
 									resolve(res.data)  
@@ -367,6 +481,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 					if (res && res.data && res.data._id) {
 						//console.log(['patch do locasl'])
 						localForageItems.setItem(res.data._id,res.data).then(function(value) {
+								createLocalIndex(res.data)
 								//console.log(['patch locasl',value])
 								// now delete from state
 								if (stopWaiting) stopWaiting()
@@ -409,6 +524,7 @@ export default function useLocalForageAndRestEndpoint(options) {
                   }
                 ).then(function(res) {
 					localForageItems.removeItem(id).then(function(value) {
+						removeLocalIndex(id)
 						if (key >= 0) {
 							dispatch({type:'remove',index:key})
 						}
@@ -417,7 +533,7 @@ export default function useLocalForageAndRestEndpoint(options) {
                     resolve(res)
                 }).catch(function(res) {
 					localForageItems.removeItem(id).then(function(value) {
-						
+						removeLocalIndex(id)
 					})
 					if (stopWaiting) stopWaiting()
                     reject({error: 'Invalid request error'})
@@ -429,37 +545,80 @@ export default function useLocalForageAndRestEndpoint(options) {
         })
     }
     
+    function refreshItem(id,key) {
+		console.log(['refre',id,key])
+		const {localForageItems} = initLocalForage(modelType)
+		return new Promise(function(resolve,reject) {
+			axiosClient.get(restUrl+modelType+"/"+id + (populate ? '?populate='+encodeURIComponent(JSON.stringify(populate)) : ''),
+			  {},{
+				headers: {
+					'Content-Type': 'application/json'
+				  },
+			  }
+			).then(function(res) {
+				if (res && res.data) {
+					console.log(['check online update res ',res.data])
+					localForageItems.setItem(id,res.data).then(function(value) {
+						dispatch({type:'update', index: key , item: res.data})
+						createLocalIndex(res.data)
+						console.log(['dispatched',res.data])
+						resolve(res.data)
+					
+					})
+					//console.log(['gotitme',item])
+				} else {
+					console.log(['gotitme nodata'])
+					resolve(null)
+				} 
+			}).catch(function(res) {
+				console.log(['gotitme err',res])
+				resolve(null)
+			  //reject({error:'Invalid request error'})
+			})
+			
+		})
+	}
+    
 	function getItem(id, callback) {
         //console.log(['GET', modelType, id, restUrl]) 
         const {localForageItems} = initLocalForage(modelType)
         if (startWaiting) startWaiting()
         //return new Promise(function(resolve,reject) {
             if (id) {
+				//console.log(['GEThave id']) 
 				// try for local first
 				localForageItems.getItem(id).then(function(value) {
+					//console.log(['GET got value',value]) 
 					if (value) {
 						if (stopWaiting) stopWaiting()
+						//console.log(['GET got local', value]) 
 						if (callback) callback(value)
 						// now check online for update  
-						//console.log('check online update')
-						axiosClient.get(restUrl+modelType+'/?query='+encodeURIComponent(JSON.stringify({"$and":[{"_id":id},{"updated_date":{"$gt":value && value.updated_date > 0 ? parseInt(value.updated_date) : 0}}]})) + (populate ? 'populate='+encodeURIComponent(JSON.stringify(populate)) : ''),
-		
-						//+'&select=id,updated_date',
-						  {},{
-							headers: {
-								'Content-Type': 'application/json'
-							  },
-						  }
-						).then(function(res) {
-							if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
-								//console.log(['check online update res ',res.data])
-								localForageItems.setItem(id,res.data[0]).then(function(value) {
-									if (callback) callback(res.data)
-								})
-							} 
-						}).catch(function(res) {
-						  //reject({error:'Invalid request error'})
-						})
+						//
+						if (autoRefresh) { 
+							//console.log('check online update')
+							//console.log(JSON.stringify(JSON.stringify({"$and":[{"_id":"ObjectId("+id+")"},{"updated_date":{"$gt":value && value.updated_date > 0 ? parseInt(value.updated_date) : 0}}]})))
+							axiosClient.get(restUrl+modelType+'/?query='+encodeURIComponent(JSON.stringify({"$and":[{"_id":id},{"updated_date":{"$gt":value && value.updated_date > 0 ? parseInt(value.updated_date) : 0}}]})) + (populate ? '&populate='+encodeURIComponent(JSON.stringify(populate)) : ''),
+			
+							//+'&select=id,updated_date',
+							  {},{
+								headers: {
+									'Content-Type': 'application/json'
+								  },
+							  }
+							).then(function(res) {
+								if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+									//console.log(['check online update res ',res.data])
+									localForageItems.setItem(id,res.data[0]).then(function(value) {
+										createLocalIndex(res.data[0])
+										//console.log(['GET got online', res.data[0]]) 
+										if (callback) callback(res.data[0])
+									})
+								} 
+							}).catch(function(res) {
+							  //reject({error:'Invalid request error'})
+							})
+						}
 					} else {
 						// fallback to online
 						axiosClient.get(restUrl+modelType+"/"+id,
@@ -471,6 +630,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 						).then(function(res) {
 							if (res && res.data) { 	
 								localForageItems.setItem(id,res.data).then(function(value) {
+									createLocalIndex(res.data)
 									if (stopWaiting) stopWaiting()
 									if (callback) callback(res.data)
 								})
@@ -502,7 +662,7 @@ export default function useLocalForageAndRestEndpoint(options) {
     /**
      * Search and return an array of ids
      */
-    function searchItemIds(filter, limit=20, skip=0) {
+    function searchItemIds(filter, limit=20000, skip=0, sort) {
 		//console.log(['searchItemIds',modelType,filter])	
 		 return new Promise(function(resolve,reject) {
             var queryParts=[
@@ -511,7 +671,7 @@ export default function useLocalForageAndRestEndpoint(options) {
                 'skip='+skip,
                 'select=_id'
             ]
-            if (populate) queryParts.push('populate='+encodeURIComponent(JSON.stringify(populate)))
+            //if (populate) queryParts.push('populate='+encodeURIComponent(JSON.stringify(populate)))
             if (sort) queryParts.push('sort='+encodeURIComponent(JSON.stringify(sort)))
             axiosClient.get(restUrl+modelType+'?'+queryParts.join("&"),
               {},{
@@ -610,7 +770,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 					).then(function(res) {
 					  //console.log(['GET many',res && res.data])  
 					  if (res && res.data && Array.isArray(res.data)) { 	
-						  //console.log(['GET many res',res && res.data])  
+						  console.log(['GET many res',res && res.data])  
 						resolve(res.data)
 					  } else {
 						  resolve([])
@@ -671,7 +831,8 @@ export default function useLocalForageAndRestEndpoint(options) {
 			})
 			var combined = []
 			Promise.all(promises).then(function(results) {
-				results.forEach(function(result) {combined.concat(result)})
+				results.forEach(function(result) {combined = combined.concat(result)})
+				//console.log([results,combined])
 				oresolve(combined)
 			})
 		})
@@ -680,7 +841,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 	function collateFinalList(ids,loadedItemsIndex,skipCheckForUpdates,callback,limit,skip) {
 		//var start = new Date().getTime()
 		const {localForageItems} = initLocalForage(modelType)
-		//console.log(['COLLATEFINALLIST',modelType,ids,loadedItemsIndex])	
+		//console.log(['COLLATEFINALLIST',skipCheckForUpdates,modelType,ids,loadedItemsIndex])	
 		return new Promise(function(resolve,reject) {
 			// async load all localstorage items
 			var promises = []
@@ -735,12 +896,13 @@ export default function useLocalForageAndRestEndpoint(options) {
 						//console.log(['collateFinal do update',new Date().getTime() - start,updateCheck])
 						// query for updated items using updated dates collated from local items
 						loadUpdatedItems(updateCheck).then(function(results) {
-							//console.log(['collateFinal done update',new Date().getTime() - start])
+							//console.log(['collateFinal done update',results,new Date().getTime() - start])
 							if (results && Array.isArray(results))  {
 								// update the loadedItemsIndex to include updated records
 								results.forEach(function(result) {
 									if (result && result._id) loadedItemsIndex[result._id] = result
 									localForageItems.setItem(result._id,result) // don't wait
+									createLocalIndex(result)
 								})
 								//console.log(['COLLATEFINALLIST UPDATE CHECK INTEGRATE',results,loadedItemsIndex])	
 								doCollate(loadedItemsIndex,localItemsIndex)
@@ -766,7 +928,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 	
 	function loadSearchItems(ids,callback, skipCheckForUpdates, limit, skip) {
 		return new Promise(function(resolve,reject) {
-			var start = new Date().getTime()
+			//var start = new Date().getTime()
 			//console.log(['loadSearchItems',modelType,ids,start])	
 			//return new Promise(function(resolve,reject) {
 			const {localForageItems} = initLocalForage(modelType)
@@ -803,7 +965,9 @@ export default function useLocalForageAndRestEndpoint(options) {
 								if (thisItem && thisItem._id) {
 									loadedItemsIndex[thisItem._id] = thisItem
 									//console.log(['loadSearchItems LOCAL SET ITEM',thisItem])	
-									localForageItems.setItem(thisItem._id,thisItem)
+									localForageItems.setItem(thisItem._id,thisItem).then(function() {
+										createLocalIndex(thisItem)
+									})
 								}
 							 })
 							 //console.log(['collated list start',new Date().getTime() - start])
@@ -842,7 +1006,7 @@ export default function useLocalForageAndRestEndpoint(options) {
 	}
     
   
-	function searchItemsNow(filter, callback, limit=20, skip=0, isort = null) {
+	function searchItemsNow(filter, callback, limit=20000, skip=0, isort = null) {
 		//console.log(['searchItemsNow', modelType, filter, restUrl]) 
         if (startWaiting) startWaiting()
 		dispatch({type:'replaceall', items: []})
@@ -858,17 +1022,17 @@ export default function useLocalForageAndRestEndpoint(options) {
 		var useSort=isort ? isort : (sort ? sort : null)
 		if (useSort) queryParts.push('sort='+encodeURIComponent(JSON.stringify(useSort)))
 		
-		searchItemIds(filter, limit, skip).then(function(searchResult) {
+		searchItemIds(filter, limit, skip, useSort).then(function(searchResult) {
 			//console.log(['LOAD NOW primary SEARCH RESULT FROM ONLINE',searchResult])
 			localForageSearches.setItem(queryParts.join("&"),searchResult)
-			loadSearchItems(searchResult,callback,false,limit,skip)(function() {
+			loadSearchItems(searchResult,callback,false,limit,skip).then(function() {
 					setItemCount( items.length   + 1)
 			})
 		})
 	}
   
-    function searchItems(filter, callback, limit=20, skip=0, isort = null) {
-        console.log(['searchItems', limit,skip, modelType, JSON.stringify(filter), restUrl]) 
+    function searchItems(filter, callback, limit=20000, skip=0, isort = null) {
+        //console.log(['searchItems', limit,skip, isort, modelType, JSON.stringify(filter), restUrl]) 
         const {localForageSearches} = initLocalForage(modelType)
 		if (startWaiting) startWaiting()
 		//return new Promise(function(resolve,reject) {
@@ -880,46 +1044,51 @@ export default function useLocalForageAndRestEndpoint(options) {
 		]
 		//if (populate) queryParts.push('populate='+encodeURIComponent(JSON.stringify(populate)))
 		var useSort=isort ? isort : (sort ? sort : null)
-		console.log(['param',JSON.stringify(isort),'state',JSON.stringify(sort),'use',JSON.stringify(useSort)])
+		//console.log(['param',JSON.stringify(isort),'state',JSON.stringify(sort),'use',JSON.stringify(useSort)])
 		if (useSort) queryParts.push('sort='+encodeURIComponent(JSON.stringify(useSort)))
+		//console.log(['QUERYKEY',JSON.stringify(queryParts)])
 		localForageSearches.getItem(queryParts.join("&")).then(function(searchResult) {
 			// from cached search result
 			//console.log(['LOAD SEARCH RESULT FROM CACHE'])
 			if (searchResult && Array.isArray(searchResult)) {
-				console.log(['LOAD SEARCH RESULT FROM CACHE',searchResult,searchResult[0]])
-				loadSearchItems(searchResult,callback,true,limit,skip).then(function() {
+				//console.log(['LOAD SEARCH RESULT FROM CACHE',searchResult,searchResult[0]])
+				loadSearchItems(searchResult,callback,!autoRefresh,limit,skip).then(function() {
 						//setItemCount( items.length   + 1) //+ (hasNextPage ? 3 : 0))
 					})
 				//setItemCount(searchResult.length + (hasNextPage ? 3 : 0))
 					
 				// check for updated search results
-				searchItemIds(filter, limit, skip).then(function(isearchResult) {
-					console.log(['LOAD SEARCH RESULT FROM ONLINE',isearchResult,isearchResult[0]])
-					if (JSON.stringify(searchResult) !== JSON.stringify(isearchResult)) {
-						console.log(['LOAD SEARCH RESULT FROM ONLINE use updates',isearchResult,isearchResult[0]])
-					
-						localForageSearches.setItem(queryParts.join("&"),isearchResult)
-						loadSearchItems(isearchResult,callback,false,limit,skip).then(function() {
-							//setItemCount( items.length   + 1) //+ (hasNextPage ? 3 : 0))
-						})
-					} else {
-						console.log(['LOAD SEARCH RESULT FROM ONLINE no updates',isearchResult,isearchResult[0]])
-					
-					}
-					//.then(function(items) {
-						//callback(items)
-					//})
-				})
-				
+				//if (autoRefresh) {
+					searchItemIds(filter, limit, skip, useSort).then(function(isearchResult) {
+						//console.log(['LOAD SEARCH RESULT FROM ONLINE',isearchResult,isearchResult[0]])
+						if (JSON.stringify(searchResult) !== JSON.stringify(isearchResult)) {
+							//console.log(['LOAD SEARCH RESULT FROM ONLINE use updates',isearchResult,isearchResult[0]])
+						
+							localForageSearches.setItem(queryParts.join("&"),isearchResult)
+							loadSearchItems(isearchResult,callback,!autoRefresh,limit,skip).then(function() {
+								//setItemCount( items.length   + 1) //+ (hasNextPage ? 3 : 0))
+							})
+						} else {
+							//console.log(['LOAD SEARCH RESULT FROM ONLINE no updates',isearchResult,isearchResult[0]])
+						
+						}
+						//.then(function(items) {
+							//callback(items)
+						//})
+					})
+				//}
 				
 				//.then(function(items) {
 					//callback(items)
 				//})
 			// search online
 			} else {
-				searchItemIds(filter, limit, skip).then(function(searchResult) {
-					console.log(['LOAD primary SEARCH RESULT FROM ONLINE',searchResult,searchResult[0]])
+				
+				searchItemIds(filter, limit, skip, useSort).then(function(searchResult) {
+					//console.log(['LOAD primary SEARCH RESULT FROM ONLINE',searchResult,searchResult[0]])
 					localForageSearches.setItem(queryParts.join("&"),searchResult)
+					if (searchResult && searchResult.length > 0) setHasNextPage(true)
+					else setHasNextPage(false)
 					loadSearchItems(searchResult,callback,false,limit,skip).then(function() {
 						//setItemCount( items.length   + 1) //+ (hasNextPage ? 3 : 0))
 					})
@@ -943,8 +1112,8 @@ export default function useLocalForageAndRestEndpoint(options) {
 	const isItemLoaded = index => items[index] && items[index]._id;
 	
 	function loadMoreItems(startIndex, stopIndex)  {
-		console.log(['loadMores',startIndex, stopIndex, 'ISLOADING',isNextPageLoading,'HASNEXTPAGE' , hasNextPage])
-		if (!isNextPageLoading ) { //&& hasNextPage) {
+		//console.log(['loadMores',startIndex, stopIndex, 'ISLOADING',isNextPageLoading,'HASNEXTPAGE' , hasNextPage])
+		if (!isNextPageLoading && hasNextPage) { //) {
 			//console.log('loadMore real')
 		    isNextPageLoading = true
 			
@@ -959,8 +1128,8 @@ export default function useLocalForageAndRestEndpoint(options) {
 					//itemStatusMap[index] = LOADED;
 				  //}
 				  isNextPageLoading = false
-				  if (loadedItems && loadedItems.length > 0) setHasNextPage(true)
-				  else setHasNextPage(false)
+				  //if (loadedItems && loadedItems.length > 0) setHasNextPage(true)
+				  //else setHasNextPage(false)
 				  //console.log(['loaded more ',loadedItems.length])
 				  resolve();
 				},(stopIndex - startIndex + 1), startIndex)
@@ -973,6 +1142,6 @@ export default function useLocalForageAndRestEndpoint(options) {
 		dispatch({type:'replaceall', items: items})
 	}
     
-    return {saveField, saveItemNow, searchItemsNow, deleteItem, getItem, searchItems, items, saveItem, saveQueue, searchFilter,setSearchFilter,categorySearchFilter,setCategorySearchFilter, getSearchFilter, loadMoreItems, isItemLoaded, itemCount, setItemCount, sort, setSort, setItems, dispatch, hasNextPage, setHasNextPage}
+    return {saveField, saveItemNow, searchItemsNow, deleteItem, getItem, searchItems, items, saveItem, saveQueue, searchFilter,setSearchFilter,categorySearchFilter,setCategorySearchFilter, getSearchFilter, loadMoreItems, isItemLoaded, itemCount, setItemCount, sort, setSort, setItems, dispatch, hasNextPage, setHasNextPage, refreshItem, getItemFromIndexValue, loadSearchItems}
     
 }

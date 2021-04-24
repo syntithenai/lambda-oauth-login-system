@@ -62,7 +62,7 @@ function reducer(state, action) {
 				state.forEach(function(item,key) {
 				  newCollatedItems[key] = item
 				})
-				action.items.map(function(item,k) {
+				action.items.forEach(function(item,k) {
 				  newCollatedItems[skip + k] = item
 				})
 				return newCollatedItems

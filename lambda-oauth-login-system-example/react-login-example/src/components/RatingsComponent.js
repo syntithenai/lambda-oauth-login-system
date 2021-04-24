@@ -8,15 +8,18 @@ import ReactStars from "react-rating-stars-component";
 // selectedValue, deselectedValue
 export default function RatingsComponent(props) {
 	
-
-	return <ReactStars
-			count={props.count ? props.count : 5}
-			onChange={props.onChange}
-			value={props.value ? props.value : 0}
-			size={24}
-			activeColor="#ffd700"
-		  />
-		
+	if (!props.readOnly) { 
+		 
+		return <span><ReactStars
+				count={props.count ? props.count : 5}
+				onChange={props.onChange}
+				value={parseInt(props.value)}
+				size={24}
+				activeColor="#ffd700"
+			  /></span>
+	 } else {
+		  return <span>{props.value}</span>
+	 }		
 }
 
 	

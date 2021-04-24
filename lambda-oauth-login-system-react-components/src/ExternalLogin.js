@@ -122,7 +122,7 @@ export default class ExternalLogin   extends Component {
 				that.isBusy = false
 				 //console.log('UPDATE USER')
 				 //console.log(event.data)
-				this.setUser(event.data.user)
+				if (event.data && event.data.user) this.setUser(event.data.user)
 				if (this.pollLoginTimeout) clearTimeout(this.pollLoginTimeout)	
 			}
 		}

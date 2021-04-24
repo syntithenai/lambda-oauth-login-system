@@ -258,7 +258,6 @@ function extractMediaField(field,item, bucket) {
 			}
 		})
 		Promise.all(promises).then(function(mediaList) {
-			
 			resolve({field: field, value: mediaList})
 		})
 	})

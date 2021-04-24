@@ -133,7 +133,7 @@ function indexTags(tags) {
 
 var template = '' 
 const restifyOptions = require('./restifyOptions')    
-const {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema} = require('./schema')
+const {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema, seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema} = require('./schema')
 var restifyRouter = express.Router();
 const {extractMediaFields, deleteBucket} = require('./extractMediaFields')
 
@@ -160,6 +160,29 @@ const Tags = mongoose.model('tags',tagsSchema )
 const Topics = mongoose.model('topics',topicsSchema )
 const MultipleChoiceQuestions = mongoose.model('multipleChoiceQuestions',multipleChoiceQuestionsSchema )
 const Comments = mongoose.model('comments',commentsSchema )
+const Grabs = mongoose.model('grabs',grabsSchema )
+
+//const Seen = mongoose.model('seen',seenSchema )
+//const Success = mongoose.model('successes',successSchema )
+//const QuestionStats = mongoose.model('questionStats',questionStatsSchema )
+//const UserStats = mongoose.model('userStats',userStatsSchema )
+const UserQuestionProgresses = mongoose.model('userquestionprogresses',userQuestionProgressSchema )
+
+const mongooseModels={
+	questions: Questions,
+	mnemonics: Mnemonics,
+	tags: Tags,
+	topics: Topics,
+	multipleChoiceQuestions: MultipleChoiceQuestions,
+	comments: Comments,
+	grabs: Grabs,
+	//seen: Seen,
+	//success: Success,
+	//questionStats: QuestionStats,
+	//userStats: UserStats,
+	userquestionprogresses: UserQuestionProgresses
+}
+
 questionsSchema.virtual('mnemonics', {
   ref: 'mnemonics', // The model to use
   localField: '_id', // Find people where `localField`
@@ -167,7 +190,7 @@ questionsSchema.virtual('mnemonics', {
   // If `justOne` is true, 'members' will be a single doc as opposed to
   // an array. `justOne` is false by default.
   justOne: false,
-  options: { sort: { _id: -1 }, limit: 5 } // Query options, see http://bit.ly/mongoose-query-options
+  options: { sort: { _id: -1 }, limit: 500 } // Query options, see http://bit.ly/mongoose-query-options
 });
 questionsSchema.virtual('comments', {
   ref: 'comments', // The model to use
@@ -176,7 +199,7 @@ questionsSchema.virtual('comments', {
   // If `justOne` is true, 'members' will be a single doc as opposed to
   // an array. `justOne` is false by default.
   justOne: false,
-  options: { sort: { _id: -1 }, limit: 5 } // Query options, see http://bit.ly/mongoose-query-options
+  options: { sort: { _id: -1 }, limit: 500 } // Query options, see http://bit.ly/mongoose-query-options
 });
 questionsSchema.virtual('multipleChoiceQuestions', {
   ref: 'multipleChoiceQuestions', // The model to use
@@ -185,7 +208,32 @@ questionsSchema.virtual('multipleChoiceQuestions', {
   // If `justOne` is true, 'members' will be a single doc as opposed to
   // an array. `justOne` is false by default.
   justOne: false,
-  options: { sort: { _id: -1 }, limit: 5 } // Query options, see http://bit.ly/mongoose-query-options
+  options: { sort: { _id: -1 }, limit: 500 } // Query options, see http://bit.ly/mongoose-query-options
+});
+//questionsSchema.virtual('userquestionprogresses', {
+    //ref: 'userquestionprogresses',
+    //localField: '_id',
+    //foreignField: 'question',
+    //justOne: false,   
+//});
+
+commentsSchema.virtual('userFull', {
+    ref: 'users',
+    localField: 'user',
+    foreignField: '_id',
+    justOne: true,   
+});
+commentsSchema.virtual('questionFull', {
+    ref: 'questions',
+    localField: 'question',
+    foreignField: '_id',
+    justOne: true,   
+});
+multipleChoiceQuestionsSchema.virtual('question', {
+    ref: 'questions',
+    localField: 'questionId',
+    foreignField: '_id',
+    justOne: true,   
 });
 
 restify.serve(restifyRouter, Questions, restifyOptions({
@@ -233,6 +281,15 @@ restify.serve(restifyRouter, Questions, restifyOptions({
 restify.serve(restifyRouter, Topics, restifyOptions())
 restify.serve(restifyRouter, Tags, restifyOptions())
 restify.serve(restifyRouter, Mnemonics, restifyOptions())
+restify.serve(restifyRouter, Comments, restifyOptions())
+restify.serve(restifyRouter, MultipleChoiceQuestions, restifyOptions())
+restify.serve(restifyRouter, Grabs, restifyOptions())
+
+//restify.serve(restifyRouter, Seen, restifyOptions())
+//restify.serve(restifyRouter, Success, restifyOptions())
+//restify.serve(restifyRouter, QuestionStats, restifyOptions())
+//restify.serve(restifyRouter, UserStats, restifyOptions())
+restify.serve(restifyRouter, UserQuestionProgresses, restifyOptions())
 
 // serve database restfully
 function bulkSave(req,res,next) {
@@ -244,45 +301,72 @@ function bulkSave(req,res,next) {
 		if (modelType && req.body && Array.isArray(req.body)) {
 			//console.log('BS bid')
 			console.log(req.body)
-			const BulkModel = mongoose.model(modelType, questionsSchema);
-			var updatePromises = []
-			var insertPromises = []
-			var operations = []
-			req.body.forEach(function(item) {
-				
-				//if ((req.body.user && req.body.user === res.locals.user._id) || res.locals.user.is_admin)  {
-							//req.body.updated_date = new Date().getTime();
-							//req.body.user = res.locals.user._id
-							//if (options.preSave) options.preSave(req,res,next)
-							//else next()
+			const BulkModel = mongooseModels[modelType]
+			console.log(['BULKMODEL',BulkModel])
+			if (BulkModel) { 
+				//mongoose.model(modelType, questionsSchema);
+				var updatePromises = []
+				var insertPromises = []
+				var operations = []
+				req.body.forEach(function(item) {
+					
+					//if ((req.body.user && req.body.user === res.locals.user._id) || res.locals.user.is_admin)  {
+								//req.body.updated_date = new Date().getTime();
+								//req.body.user = res.locals.user._id
+								//if (options.preSave) options.preSave(req,res,next)
+								//else next()
+							//} else {
+								//console.log('Incorrect User')
+								//return res.sendStatus("401") // not authenticated
+							//}
 						//} else {
-							//console.log('Incorrect User')
+							//console.log('Not authenticated')
 							//return res.sendStatus("401") // not authenticated
 						//}
-					//} else {
-						//console.log('Not authenticated')
-						//return res.sendStatus("401") // not authenticated
-					//}
-				
-				
-				if (item && item._id) {
-					//console.log('BS item id'+item._id, res.locals.user._id, item.user)
-					if ((item.user && item.user === res.locals.user._id) || res.locals.user.is_admin)  {
 					
-					//if (item.delete_me) {
-						//operations.push({deleteOne:{filter:{_id:item._id}}})
-						//// TODO if (Array.isArray(mediaFields[modelType])) deleteMediaFields(mediaFields[modelType],req.body)
-					//} else {
+					
+					if (item && item._id) {
+						//console.log('BS item id'+item._id, res.locals.user._id, item.user)
+						if ((item.user && item.user === res.locals.user._id) || res.locals.user.is_admin)  {
+						
+						//if (item.delete_me) {
+							//operations.push({deleteOne:{filter:{_id:item._id}}})
+							//// TODO if (Array.isArray(mediaFields[modelType])) deleteMediaFields(mediaFields[modelType],req.body)
+						//} else {
+							item.updated_date = new Date().getTime()
+							// index topics,tags
+							var topic = item.quiz
+							updatePromises.push(new Promise(function(resolve,reject) {
+								indexTopic(topic).then(function() {
+									indexTags(item.tags).then(function() {
+										//console.log(['should extract',mediaFields,modelType,Array.isArray(mediaFields[modelType])])
+										if (Array.isArray(mediaFields[modelType])) {
+											extractMediaFields(mediaFields[modelType],item, bucketPrefix + modelType+'-').then(function(item) {
+												//console.log(['did extract',item])
+												resolve(item)
+											})
+										} else {
+											resolve(item)
+											//operations.push({updateOne:{filter:{_id:mongoose.Types.ObjectId(item._id)},update:item}})
+										}
+									})
+								})
+							}))
+						} else {
+							console.log('Not authenticated')
+							//return res.sendStatus("401") // not authenticated
+						}
+					} else if (item) {
+						item.created_date = new Date().getTime()
 						item.updated_date = new Date().getTime()
-						// index topics,tags
-						var topic = item.quiz
-						updatePromises.push(new Promise(function(resolve,reject) {
+						item.user = res.locals.user._id		
+						insertPromises.push(new Promise(function(resolve,reject) {
+							// index topics,tags
+							var topic = item.quiz
 							indexTopic(topic).then(function() {
 								indexTags(item.tags).then(function() {
-									//console.log(['should extract',mediaFields,modelType,Array.isArray(mediaFields[modelType])])
 									if (Array.isArray(mediaFields[modelType])) {
 										extractMediaFields(mediaFields[modelType],item, bucketPrefix + modelType+'-').then(function(item) {
-											//console.log(['did extract',item])
 											resolve(item)
 										})
 									} else {
@@ -292,56 +376,37 @@ function bulkSave(req,res,next) {
 								})
 							})
 						}))
-					} else {
-						console.log('Not authenticated')
-						//return res.sendStatus("401") // not authenticated
-					}
-				} else {
-					item.created_date = new Date().getTime()
-					item.updated_date = new Date().getTime()
-					item.user = res.locals.user._id		
-					insertPromises.push(new Promise(function(resolve,reject) {
-						// index topics,tags
-						var topic = item.quiz
-						indexTopic(topic).then(function() {
-							indexTags(item.tags).then(function() {
-								if (Array.isArray(mediaFields[modelType])) {
-									extractMediaFields(mediaFields[modelType],item, bucketPrefix + modelType+'-').then(function(item) {
-										resolve(item)
-									})
-								} else {
-									resolve(item)
-									//operations.push({updateOne:{filter:{_id:mongoose.Types.ObjectId(item._id)},update:item}})
-								}
-							})
-						})
-					}))
-					//operations.push({insertOne:{document:item}})
-				}
-			})
-			var inserted=[]
-			var updated=[]
-			Promise.all(insertPromises).then(function(items) {
-				items.forEach(function(item) {
-					//console.log(['BULK EXTR INS',JSON.stringify(item)])
-					operations.push({insertOne:{document:item}})
-					inserted.push(item)
+						//operations.push({insertOne:{document:item}})
+					} 
 				})
-				Promise.all(updatePromises).then(function(items) {
-					items.forEach(function(item) {	
-						//console.log(['BULK EXTR UPD',JSON.stringify(item)])
-						operations.push({updateOne:{filter:{_id:mongoose.Types.ObjectId(item._id)},update:item}})
-						updated.push(item)
+				var inserted=[]
+				var updated=[]
+				Promise.all(insertPromises).then(function(items) {
+					items.forEach(function(item) {
+						//console.log(['BULK EXTR INS',JSON.stringify(item)])
+						if (item) {
+							operations.push({insertOne:{document:item}})
+							inserted.push(item)
+						}
 					})
-						
-					//console.log(JSON.stringify(operations))
-					BulkModel.bulkWrite(operations).then(result => {
-						console.log({inserted: result.insertedCount, modified: result.modifiedCount, deleted: result.deletedCount})
-						res.send({inserted: result.insertedCount, modified: result.modifiedCount, deleted: result.deletedCount, inserted: inserted, updated: updated})
-					});
-				})
+					Promise.all(updatePromises).then(function(items) {
+						items.forEach(function(item) {	
+							//console.log(['BULK EXTR UPD',JSON.stringify(item)])
+							if (item) {
+								operations.push({updateOne:{filter:{_id:mongoose.Types.ObjectId(item._id)},update:item}})
+								updated.push(item)
+							}
+						})
+							
+						//console.log(JSON.stringify(operations))
+						BulkModel.bulkWrite(operations).then(result => {
+							console.log({inserted: result.insertedCount, modified: result.modifiedCount, deleted: result.deletedCount})
+							res.send({inserted: result.insertedCount, modified: result.modifiedCount, deleted: result.deletedCount, inserted: inserted, updated: updated})
+						});
+					})
 
-			})
+				})
+			}
 		}
 	} else {
 		console.log('Not authenticated')

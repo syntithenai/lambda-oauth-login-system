@@ -9,10 +9,14 @@ import checkImage from '../images/check.svg'
 // value, onChange
 export default function CheckboxComponent(props) {
 	//var selectedValue = props.selectedValue ? props.selectedValue : true
-	return (
-	<React.Fragment>
-      {(!props.value) && <Button style={{float: 'left'}}  variant="secondary" onClick={function(e) {props.onChange(true)}} ><img style={{height:'1em'}} src={checkImage} alt="Select"  /></Button>}
-      {(props.value )  && <Button style={{float: 'left'}}  variant="success" onClick={function() {props.onChange(false)}} ><img style={{height:'1em'}} src={checkImage} alt="Deselect"  /></Button>}
-     </React.Fragment>
-   )
+	if (!props.readOnly) { 
+		return (
+		<React.Fragment>
+		  {(!props.value) && <Button style={Object.assign({},props.style,{float: 'left'})}  variant="secondary" onClick={function(e) {props.onChange(true)}} ><img style={{height:'1em'}} src={checkImage} alt="Select"  /></Button>}
+		  {(props.value )  && <Button style={Object.assign({},props.style,{float: 'left'})}  variant="success" onClick={function() {props.onChange(false)}} ><img style={{height:'1em'}} src={checkImage} alt="Deselect"  /></Button>}
+		 </React.Fragment>
+	   )
+	} else {
+		return <span>{props.value}</span>
+	} 
 }

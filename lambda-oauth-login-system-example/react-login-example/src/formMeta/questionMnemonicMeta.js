@@ -1,36 +1,40 @@
 
 //import CheckboxComponent from '../components/CheckboxComponent'
 //import TagsComponent from '../components/TagsComponent'
-//import MediaEditorComponent from '../components/MediaEditorComponent'
+import MediaEditorComponent from '../components/MediaEditorComponent'
 //import RatingsComponent from '../components/RatingsComponent'
 //import DropDownComponent from '../components/DropDownComponent'
 import TextComponent from '../components/TextComponent'
 //import TextareaComponent from '../components/TextareaComponent'
-//import ItemListComponent from '../components/ItemListComponent'
+import SelectComponent from '../components/SelectComponent'
 
-export default function (props) {
+export default function questionMnemonicMeta(props) {
 	return {
 		groups:[
-			
-			
-			{key:'g2',title:'', fields:[
+			{key:'mn3',title:'', fields:[
+				{
+					field:'mnemonic_technique',
+					label:'',
+					width: 2,
+					component:SelectComponent,
+					props:{allowFullScreen: true, options: ['','highlight','keypoint','homonym','association','alliteration','rhyme','acronym','mnemonic major system','visual'] }
+				},
 				{
 					field:'mnemonic',
-					label:'Mnemonic',
-					width: 12,
+					label:'',
+					width: 10,
 					component:TextComponent,
+					props:{}
+				},
+				{
+					field:'meme',
+					label:'Meme',
+					width: 12,
+					component:MediaEditorComponent,
 					props:{}
 				}
 			]},
-			//{key:'g3',title:'', fields:[
-				//{
-					//field:'mnemonic_technique',
-					//label:'Type',
-					//width: 12,
-					//component:TextComponent,
-					//props:{allowFullScreen: true}
-				//}
-			//]}
+			
 			
 		]
 	}

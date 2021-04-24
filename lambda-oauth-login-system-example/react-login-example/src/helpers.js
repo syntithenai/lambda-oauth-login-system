@@ -1,6 +1,7 @@
 import axios from 'axios'  
 import md5 from 'md5'
 import https from 'https'
+import ReactGA from 'react-ga';
 
 function isEditable(record,user) {
 	if (user && user.is_admin) {
@@ -9,6 +10,15 @@ function isEditable(record,user) {
 		return true
 	}
 	return false
+}
+	
+function analyticsEvent(page,category='Navigation') {
+	if (process.env.REACT_APP_ANALYTICS_KEY) {
+		ReactGA.event({
+		  category: category,
+		  action:  page
+		})
+	}
 }
 
 function getDistinct(axiosClient, restUrl, modelType ,field) {
@@ -118,6 +128,7 @@ function getAxiosClient(accessToken)	{
 	  
 	function YouTubeGetID(url){
 		url = url.split(/(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/);
+		// eslint-disable-next-line
 		return undefined !== url[2]?url[2].split(/[^0-9a-z_\-]/i)[0]:url[0];
 	}
 	
@@ -128,5 +139,12 @@ function getAxiosClient(accessToken)	{
 			return buffer
 		}
 	};
-
-export {isEditable, getDistinct, decodeFromBase64, generateObjectId,uniquifyArray,scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath, YouTubeGetID}
+	function getRandomString(length) {
+		var randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		var result = '';
+		for ( var i = 0; i < length; i++ ) {
+			result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+		}
+		return result;
+	}
+export {isEditable, getDistinct, decodeFromBase64, generateObjectId,uniquifyArray,scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath, YouTubeGetID, getRandomString,analyticsEvent}

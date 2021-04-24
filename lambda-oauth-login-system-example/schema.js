@@ -1,7 +1,10 @@
 const mongoose = require('mongoose')
 
 const topicsSchema = new mongoose.Schema({
-	topic: { type: String },
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    user: { type:mongoose.Types.ObjectId },
+    topic: { type: String },
 	description: { type: String }
 }, { collation: { locale: 'en_US', strength: 1 } })
 topicsSchema.index({
@@ -10,12 +13,14 @@ topicsSchema.index({
 });
 
 const commentsSchema = new mongoose.Schema({
-	comment: { type: String },
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    comment: { type: String },
 	type: { type: String },
-	userAvatar: { type: String },
-	questionTopic: { type: String },
-	questionText: { type: String },
 	user: { type:mongoose.Types.ObjectId },
+	userAvatar: { type: String },
+	sort: {type: Number},
+	topic: {type: String},
 	question: { type:mongoose.Types.ObjectId }
 }, { collation: { locale: 'en_US', strength: 1 } })
 commentsSchema.index({
@@ -24,14 +29,19 @@ commentsSchema.index({
 
 
 const tagsSchema = new mongoose.Schema({
-	title: { type: String }
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    user: { type:mongoose.Types.ObjectId },
+    title: { type: String }
 }, { collation: { locale: 'en_US', strength: 1 } })
 tagsSchema.index({
 		title: "text"
 });
 
 const mnemonicsSchema = new mongoose.Schema({
-	mnemonic: { type: String },
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    mnemonic: { type: String },
 	user: { type:mongoose.Types.ObjectId },
 	question: { type:mongoose.Types.ObjectId }
 }, { collation: { locale: 'en_US', strength: 1 } })
@@ -39,21 +49,31 @@ mnemonicsSchema.index({
 	title: "text"
 });
 
+const grabsSchema = new mongoose.Schema({
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    text: { type: String },
+    url: { type: String },
+	user: { type:mongoose.Types.ObjectId },
+}, { collation: { locale: 'en_US', strength: 1 } })
+grabsSchema.index({
+	title: "text"
+});
+
 const multipleChoiceQuestionsSchema = new mongoose.Schema({
-	specific_question: { type: String},
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    specific_question: { type: String},
 	specific_answer: { type: String},
 	multiple_choice: { type: String},
 	also_accept: { type: String},
 	user: { type:mongoose.Types.ObjectId },
-	question: { type:mongoose.Types.ObjectId }
+	questionId: { type:mongoose.Types.ObjectId }
 }, { collation: { locale: 'en_US', strength: 1 } })
 multipleChoiceQuestionsSchema.index({
 	specific_question: "text",
 	specific_answer: "text",
 	multiple_choice: "text",
-	also_accept: "text",
-	user: { type:mongoose.Types.ObjectId },
-	question: { type:mongoose.Types.ObjectId }
 });
 
 
@@ -67,6 +87,8 @@ const questionsSchema = new mongoose.Schema({
   prefix: { type: String},
   postfix: { type: String},
   question: { type: String},
+  question_full: { type: String},
+  question_subject: { type: Object},
   answer: { type: String},
   discoverable: { type: String},
   access: { type: String},
@@ -92,4 +114,43 @@ questionsSchema.index({
 		answer:"text"
 });
 
-module.exports = {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema}
+const seenSchema = new mongoose.Schema({
+	updated_date: { type: Number}, 
+    user: { type:mongoose.Types.ObjectId },
+	question: { type:mongoose.Types.ObjectId }
+ })
+const successSchema = new mongoose.Schema({
+	updated_date: { type: Number}, 
+    user: { type:mongoose.Types.ObjectId },
+	question: { type:mongoose.Types.ObjectId }
+ })
+ const userStatsSchema = new mongoose.Schema({
+	updated_date: { type: Number}, 
+    user: { type:mongoose.Types.ObjectId },
+	seenTally: {type: Number},
+	successTally: {type: Number},
+	successRate: {type: Number}
+ })
+ const questionStatsSchema = new mongoose.Schema({
+	updated_date: { type: Number}, 
+    question: { type:mongoose.Types.ObjectId },
+	seenTally: {type: Number},
+	successTally: {type: Number},
+	successRate: {type: Number}
+ })
+ 
+ const userQuestionProgressSchema = new mongoose.Schema({
+	updated_date: { type: Number}, 
+    user: { type:mongoose.Types.ObjectId },
+	question: { type:mongoose.Types.ObjectId },
+	seenTally: {type: Number},
+	seen: {type: Number},
+	successTally: {type: Number},
+	successRate: {type: Number},
+	topic: {type: String},
+	difficulty: {type: Number},
+	block: {type: Number}
+ })
+
+
+module.exports = {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema,  seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema}

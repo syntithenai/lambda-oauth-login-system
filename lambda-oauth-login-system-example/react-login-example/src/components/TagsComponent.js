@@ -44,27 +44,34 @@ export default function TagsComponent(props) {
         return true
     }
 
-
-	return <React.Fragment>
+	if (!props.readOnly) { 
 	
-		
-		<ReactTags
-			tagComponent={TagComponent}
-            placeholderText={props.placeholderText ? props.placeholderText : "Add tag"}
-			minQueryLength={0}
-			maxSuggestionsLength={50}
-			autoresize={true}
-			allowNew={true}
-			tags={props.value && Array.isArray(props.value) ? props.value.map(function(tag,i) {
-				return {id: i, name: tag}
-			}) : []}
-			suggestionComponent={SuggestionComponent}
-			suggestions={props.suggestions && Array.isArray(props.suggestions) ? props.suggestions.map(function(name,i) {return {id: i, name: name}}) : []}
-			onDelete={onTagDelete}
-			onAddition={onTagAddition} /> 
-			
-			
-	</React.Fragment>
+		return <React.Fragment>
+			<ReactTags
+				tagComponent={TagComponent}
+				placeholderText={props.placeholderText ? props.placeholderText : "Add tag"}
+				minQueryLength={0}
+				maxSuggestionsLength={50}
+				autoresize={true}
+				allowNew={true}
+				tags={props.value && Array.isArray(props.value) ? props.value.map(function(tag,i) {
+					return {id: i, name: tag}
+				}) : []}
+				suggestionComponent={SuggestionComponent}
+				suggestions={props.suggestions && Array.isArray(props.suggestions) ? props.suggestions.map(function(name,i) {return {id: i, name: name}}) : []}
+				onDelete={onTagDelete}
+				onAddition={onTagAddition} /> 
+				
+				
+		</React.Fragment>
+	  } else {
+		  //console.log('tags')
+//console.log(props.value)
+			//return props.value.join(",")
+		  return <span>{(props.value && Array.isArray(props.value)) && props.value.map(function(tag) {
+				return <Button variant="warning">{tag}</Button>
+			})}</span>
+	  }
 }
 
 	

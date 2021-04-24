@@ -19,19 +19,24 @@ const FullScreenIcon = function(props) { return (<svg stroke="currentColor" fill
 
 export default function TextComponent(props) {
 	const [fullScreen, setFullScreen] = useState(false)
-	return <span>
-		
-		{props.allowFullScreen && <Button style={{float:'right'}} onClick={function(e) {console.log('FS'); setFullScreen(true)}} ><FullScreenIcon/></Button>}
-		{<Modal dialogClassName="modal-90w"
-          show={fullScreen} onHide={function(e) {console.log('FS off'); setFullScreen(false)}}  >
-			<Modal.Header closeButton>&nbsp;</Modal.Header>
-        
-			<Modal.Body > 
-				<Form.Control as='textarea'  rows={15}   value={props.value ? props.value : ''} onChange={function(e) {props.onChange(e.target.value)}} />		
-			 </Modal.Body>
-		</Modal>}
-	<Form.Control   as='input' value={props.value ? props.value : ''} onChange={function(e) {props.onChange(e.target.value)}} />		
-	</span>
+	if (!props.readOnly) { 
+		return <span style={{position:'relative'}}>
+			{props.allowFullScreen && <Button style={{float: 'left'}}  onClick={function(e) {console.log('FS'); setFullScreen(true)}} ><FullScreenIcon/></Button>}
+						
+			{<Modal dialogClassName="modal-90w"
+			  show={fullScreen} onHide={function(e) {console.log('FS off'); setFullScreen(false)}}  >
+				<Modal.Header closeButton>&nbsp;</Modal.Header>
+			
+				<Modal.Body >
+						<Form.Control as='textarea'  rows={15}   value={props.value ? props.value : ''} onChange={function(e) {props.onChange(e.target.value)}} />		
+					
+				 </Modal.Body>
+			</Modal>}
+		<Form.Control style={{float: 'left', width: '90%'}}  as='input' value={props.value ? props.value : ''} onChange={function(e) {props.onChange(e.target.value)}} />		
+		</span>
+	  } else {
+		  return <span>{props.value}</span>
+	  }
 }
 
 	

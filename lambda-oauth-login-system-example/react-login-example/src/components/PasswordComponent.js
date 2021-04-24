@@ -31,14 +31,18 @@ export default function Password(props) {
 		setChanged(true)
 	}
 	
-	
-	return <span>
-		{error && <b>{error}</b>}
-		<Form.Control  inline={'true'} type='password' value={p1} onChange={function(e) {onChangeP1(e.target.value)}} />		
-		<b>Confirm Password </b>
-		<Form.Control   inline={'true'} type='password' value={props.value ? props.value : ''} onChange={function(e) {onChangeP2(e.target.value)}} />
-		{(p1 && p1 === p2) && <Button onClick={onChange} variant={'success'} >Save</Button>		
-	</span>
+	if (!props.readOnly) { 
+		
+		return <span>
+			{error && <b>{error}</b>}
+			<Form.Control  inline={'true'} type='password' value={p1} onChange={function(e) {onChangeP1(e.target.value)}} />		
+			<b>Confirm Password </b>
+			<Form.Control   inline={'true'} type='password' value={props.value ? props.value : ''} onChange={function(e) {onChangeP2(e.target.value)}} />
+			{(p1 && p1 === p2) && <Button onClick={onChange} variant={'success'} >Save</Button>		
+		</span>
+	  } else {
+		  return <span></span>
+	  }
 }
 
 	
