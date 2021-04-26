@@ -1,5 +1,5 @@
 import React,{useState, useEffect} from 'react';
-import {HashRouter as  Router, Route  , Switch} from 'react-router-dom'
+import {HashRouter as  Router, Route  , Switch, Link} from 'react-router-dom'
 import {ExternalLogin, LoginSystem, waitingImage} from 'lambda-oauth-login-system-react-components'
 import NavbarComponent from './NavbarComponent'
 //import QuestionsEditor from './QuestionsEditor'
@@ -8,6 +8,8 @@ import ReviewApi from './ReviewApi'
 import ReviewPage from './ReviewPage'
 import DiscoverPage from './DiscoverPage'
 import FeedPage from './FeedPage'
+import CommentsPage from './CommentsPage'
+
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {Button, Badge} from 'react-bootstrap'
@@ -23,13 +25,14 @@ import {Button, Badge} from 'react-bootstrap'
 import ItemSingle from './components/ItemSingle'
 import ItemList from './components/ItemList'
 import questionsMeta from './formMeta/questionsMeta'
-import commentsMeta from './formMeta/commentsMeta'
 
 import questionsMiniMeta from './formMeta/questionsMiniMeta'
 //import questionMnemonicMeta from './formMeta/questionMnemonicMeta'
 
 //import useLocalForageAndRestEndpoint from './useLocalForageAndRestEndpoint'
-import {getAxiosClient, getDistinct,analyticsEvent} from './helpers'  
+import {getAxiosClient, getDistinct,analyticsEvent, addLeadingZeros} from './helpers'  
+import commentsMeta from './formMeta/commentsMeta'
+
 //import useLocalForageAndRestEndpoint from './useLocalForageAndRestEndpoint'
 //import useMnemoReviewTools from './useMnemoReviewTools'
 import ReactGA from 'react-ga';
@@ -52,7 +55,17 @@ const blockOnIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="1
 const blockOffIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-shield" viewBox="0 0 16 16">
   <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.615.615 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.775 11.775 0 0 1-2.517 2.453 7.159 7.159 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7.158 7.158 0 0 1-1.048-.625 11.777 11.777 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 62.456 62.456 0 0 1 5.072.56z"/>
 </svg>
- 
+
+const viewIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-eye" viewBox="0 0 16 16">
+  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+</svg> 
+
+const replyIcon = 
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-reply-fill" viewBox="0 0 16 16">
+  <path d="M5.921 11.9 1.353 8.62a.719.719 0 0 1 0-1.238L5.921 4.1A.716.716 0 0 1 7 4.719V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/>
+</svg>
+
  
 const RESTURL='/dev/handler/rest/api/v1/'
 function App(props) {
@@ -73,6 +86,14 @@ function App(props) {
      const autoSaveDelay = 3000 
 	const [tags,setTags] = useState([])
 	const [topics,setTopics] = useState([])
+	//const [onFinishTimer, setOnFinishTimer] = useState(function(a) {console.log('fin tim '+a)})
+	var onFinishTimer = function(a) {
+		var seconds = parseInt((new Date().getTime()/1000 - a))
+		alert('Finished '+seconds+' second timer')
+	}
+	function setOnFinishTimer(fn) {
+		onFinishTimer = fn
+	}
 	const axiosClient = getAxiosClient()
 	var localForageLookups = localForage.createInstance({name:'lookups',storeName:'items'});
 	//var reviewTools = useMnemoReviewTools()
@@ -194,6 +215,8 @@ function App(props) {
 						{(reviewApi) => {
 							//console.log(reviewApi)
 							const editorProps = Object.assign({},loginContext,{
+								buttons: null, // clear from loginsystem
+								setOnFinishTimer: setOnFinishTimer,
 								 autoSaveDelay: autoSaveDelay,
 								 itemsQueued: itemsQueued,
 								 onItemQueued: onItemQueued,
@@ -290,26 +313,45 @@ function App(props) {
 							}
 							const discoverPageProps = reviewPageProps
 							const feedPageProps = {}
+							
 							const commentsProps = Object.assign({},editorProps, {
 								 modelType: 'comments', 
-								 populate: [], 
-								 useCategorySearch: 'topic',
+								 populate: [ {path: 'questionFull'}], 
 								 fieldMeta: commentsMeta,
+								 defaultSort: {updated_date:-1},
+								 itemSize: function(key,items,searchFilter) {
+									if (items && key && items[key]) {
+										var comment = (items[key].comment) ? items[key].comment : ''
+										//console.log([comment,comment.length, (parseInt(comment.length / 45) * 10)] )
+										return 200 + (parseInt(comment.length / 45) * 10)
+									} else {
+										return 200
+									}
+								 },
+								 useCategorySearch: "questionTopic",
 								 createItem: function(item,key) {
-									console.log('createIteddm')
-									console.log(item)
-									//var value = item.topic
-									//// filter allowable values by user
-									//var newValue = (value && loginContext.user && (loginContext.user.is_admin || (loginContext.user.avatar && value.indexOf(loginContext.user.avatar+"'s") === 0))) ? value : '';
-									////console.log([newValue,loginContext.user.avatar])
-									//// empty then default notes
-									//if (!newValue && loginContext.user && loginContext.user._id && loginContext.user.avatar) {
-										//newValue =  loginContext.user.avatar+"'s Notes" 
-									//} 
-									//return {quiz: newValue, access:'private', discoverable:'yes'} 
-									return {}
-								  }
-								 								
+									return {questionTopic: item.topic, access:'public', userAvatar: commentsProps.user ? commentsProps.user.avatar : '', questionText: item.question_full} 
+								  },
+								  
+								 buttons:[
+								   function(item, callback) { 
+									 //console.log(['BC',item,item ? item.itemkey : 'none',item,item.created_date])
+									 let currentDatetime = new Date(item.created_date)
+									 let createdDate = currentDatetime.getDate() + "-" + addLeadingZeros(currentDatetime.getMonth() + 1) + "-" + addLeadingZeros(currentDatetime.getFullYear()) + " " + addLeadingZeros(currentDatetime.getHours()) + ":" + addLeadingZeros(currentDatetime.getMinutes()) 
+									 return <span key={item.itemkey} >
+											<Button key="info" variant="info"  style={{float:'left'}} title={ 'Block'} ><b>{createdDate}</b> &nbsp;{item.userAvatar ? ' by ' + item.userAvatar : ''}</Button> 
+											<Button key="reply" variant="success" style={{float:'left', marginLeft:'0.2em'}} onClick={function(e) {if (item.createNew) item.createNew(Object.assign({},item,{parentComment: item._id}), item.itemkey + 1);  else console.log(commentsProps) ; }} title={ 'Reply'} >{replyIcon}</Button>
+											<span>&nbsp;&nbsp;&nbsp;
+												<b>{item.questionTopic ? item.questionTopic : ''}</b>
+												
+											</span>
+											{item.question && <div style={{width:'100%', clear:'both'}} >
+												<Link to={"/search/"+item.question} ><Button>{viewIcon}</Button>
+												&nbsp;&nbsp;{item.questionText ? item.questionText : ''}</Link></div>}
+										</span>
+									}
+								]
+																
 							})
 							
 							//console.log(reviewApi)
@@ -317,7 +359,7 @@ function App(props) {
 							
 							{(waiting) && <div className="overlay" style={{zIndex:999, position:'fixed', top: 0, left:0, width:'100%', height:'100%', opacity: 0.5, backgroundColor:'grey'}} onClick={stopWaiting} ><img alt="waiting" style={{position: 'fixed' ,top: '100px', left: '100px', width: '100px', height: '100px'}} src={waitingImage} onClick={stopWaiting} /></div>}
 						   
-							<NavbarComponent loginCheckActive={loginContext.loginCheckActive} itemsQueued={itemsQueued}  user={loginContext.user} queueActive={queueActive} isLoggedIn={loginContext.isLoggedIn}   />
+							<NavbarComponent onFinishTimer={onFinishTimer} loginCheckActive={loginContext.loginCheckActive} itemsQueued={itemsQueued}  user={loginContext.user} queueActive={queueActive} isLoggedIn={loginContext.isLoggedIn}   />
 							
 							<Switch>
 								<Route  path={`/login`}  render={(props) => <LoginSystem  {...loginContext} hideButtons={true}  match={props.match}  history={props.history}  location={props.location}  />}  />
@@ -375,7 +417,7 @@ function App(props) {
 								  />}
 								/>
 								
-								<Route  path={`/comments`}  render={(props) => <ItemList  {...commentsProps} 
+								<Route  path={`/comments`}  render={(props) => <CommentsPage  {...commentsProps} 
 									match={props.match}  history={props.history}  location={props.location} 
 									/>}  
 								/>	

@@ -30,7 +30,7 @@ function getDistinct(axiosClient, restUrl, modelType ,field) {
 			  },
 		  }
 		).then(function(res) {
-		  //console.log(['GET many',res])  
+		  console.log(['GET many DISTINCT',res])  
 		  if (res && res.data && Array.isArray(res.data)) { 
 			  var sorted = res.data.sort(function(a,b) { if (a && b &&  a.toLowerCase().trim() < b.toLowerCase().trim()) {return -1} else {return 1}})
 			  //console.log(sorted) 	
@@ -147,4 +147,11 @@ function getAxiosClient(accessToken)	{
 		}
 		return result;
 	}
-export {isEditable, getDistinct, decodeFromBase64, generateObjectId,uniquifyArray,scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath, YouTubeGetID, getRandomString,analyticsEvent}
+	
+	function addLeadingZeros(n) {
+	  if (n <= 9) {
+		return "0" + n;
+	  }
+	  return n
+	}
+export {isEditable, getDistinct, decodeFromBase64, generateObjectId,uniquifyArray,scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath, YouTubeGetID, getRandomString,analyticsEvent, addLeadingZeros}

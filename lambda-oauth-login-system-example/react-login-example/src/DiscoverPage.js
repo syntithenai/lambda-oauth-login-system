@@ -245,7 +245,7 @@ export default function DiscoverPage(props) {
 					<div><ItemForm {...formProps} editable={false} /></div>
 			<hr/>
 				<div style={{position: 'fixed', bottom: 0, left: 0, width:'100%'}} >
-					<Row>
+					{(discoverItem && discoverItem._id) && <Row>
 						<Col className='xs-2' >
 							
 						</Col>
@@ -260,7 +260,7 @@ export default function DiscoverPage(props) {
 						<Col className='xs-2' >
 							
 						</Col>
-					</Row>
+					</Row>}
 				</div>
 			</div>}
   			

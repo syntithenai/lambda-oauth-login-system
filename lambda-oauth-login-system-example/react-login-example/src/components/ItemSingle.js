@@ -1,6 +1,6 @@
 import React,{useState, useEffect}  from 'react'; //, {Fragment, useState}
 import {Button} from 'react-bootstrap'
-import {useHistory} from 'react-router-dom'
+import {useHistory, useLocation} from 'react-router-dom'
 import {getAxiosClient, isEditable} from '../helpers'  
 import useLocalForageAndRestEndpoint from '../useLocalForageAndRestEndpoint'
 import ItemForm from './ItemForm'
@@ -23,10 +23,13 @@ const refreshIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="1
 export default function ItemSingle(props) {
 
 	const axiosClient = props.isLoggedIn() ? getAxiosClient(props.user.token.access_token) : getAxiosClient()
-	const {saveField, saveItemNow, deleteItem, getItem, refreshItem} = useLocalForageAndRestEndpoint({user: props.user, modelType:'questions',axiosClient:axiosClient,restUrl:'/dev/handler/rest/api/v1/',startWaiting:props.startWaiting,stopWaiting: props.stopWaiting,onItemQueued: props.onItemQueued,onStartSaveQueue: props.onStartSaveQueue,onFinishSaveQueue: props.onFinishSaveQueue, autoSaveDelay: props.autoSaveDelay, autoRefresh: props.autoRefresh ? true : false , populate: props.populate})
+	const {saveField, saveItemNow, deleteItem, getItem, refreshItem} = useLocalForageAndRestEndpoint({user: props.user, modelType:props.modelType,axiosClient:axiosClient,restUrl:'/dev/handler/rest/api/v1/',startWaiting:props.startWaiting,stopWaiting: props.stopWaiting,onItemQueued: props.onItemQueued,onStartSaveQueue: props.onStartSaveQueue,onFinishSaveQueue: props.onFinishSaveQueue, autoSaveDelay: props.autoSaveDelay, autoRefresh: props.autoRefresh ? true : false , populate: props.populate})
 	//console.log(props)
 	const history = useHistory()
-	
+	const location = useLocation()
+	//console.log(location)
+	var parts = location.pathname.split("/")
+	var basePath = parts.length > 0 ? "/" + parts[1]  : ""
 	const [item,setItem] = useState({})
 	// use props item or id in preference, fallback to params
 	//const params = useParams();
@@ -51,7 +54,7 @@ export default function ItemSingle(props) {
 				saveItemNow(newItem).then(function(newItem) {
 					//console.log(['created new item',newItem])
 					setItem(newItem)
-					history.push('/search/'+newItem._id)
+					history.push(basePath+"/"+newItem._id)
 				})
 			} else {
 				//console.log('getItem '+useId)
@@ -112,7 +115,7 @@ export default function ItemSingle(props) {
 	
 		return <div style={{width:'100%'}}>   
 			<div style={{height: '4em'}} ></div>
-			<Button title="Close"  onClick={function() {history.push('/search')}}  style={{float:'right', marginLeft:'0.2em'}}  >{closeIcon}</Button>
+			<Button title="Close"  onClick={function() {history.goBack() /*push(basePath)*/}}  style={{float:'right', marginLeft:'0.2em'}}  >{closeIcon}</Button>
 			<Button  title="Refresh" style={{float:'right', marginLeft:'0.2em'}} variant="warning" onClick={function() {
 				refreshItem(item._id,null).then(function(newItem) {
 					setItem(newItem)

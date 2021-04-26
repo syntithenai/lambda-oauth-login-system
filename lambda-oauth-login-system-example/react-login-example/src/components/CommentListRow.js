@@ -26,7 +26,7 @@ const refreshIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="1
 
 	
 
-export default class ItemListRow extends PureComponent {
+export default class CommentListRow extends PureComponent {
   
   constructor(props) {
 	super(props);
@@ -107,8 +107,8 @@ export default class ItemListRow extends PureComponent {
 
 					{editable && <Button title="Delete"  style={{float:'right'}} variant="danger" onClick={function(e) {if (window.confirm('Really delete ?')) data.deleteItem(item._id,index)} } >{deleteIcon}</Button>}
 					
-					{editable && <Link to={data.matchUrl +item._id} ><Button title="Edit"  style={{float:'right'}} variant="success" >{editIcon}</Button></Link>}
-					{!editable && <Link to={data.matchUrl +item._id} ><Button title="View"  style={{float:'right'}} variant="success" >{viewIcon}</Button></Link>}
+					{editable && <Link to={data.matchUrl +item._id} ><Button title="Edit"  style={{float:'right'}} variant="success" >{editIcon}</Button>{item.questionText}</Link>}
+					
 					{(item && item._id) && <div>
 					
 					{Array.isArray(data.buttons) ? <>{data.buttons.map(function(button,bkey) {

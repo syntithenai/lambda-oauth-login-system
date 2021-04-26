@@ -19,12 +19,17 @@ const commentsSchema = new mongoose.Schema({
 	type: { type: String },
 	user: { type:mongoose.Types.ObjectId },
 	userAvatar: { type: String },
+	access: { type: String},
 	sort: {type: Number},
-	topic: {type: String},
-	question: { type:mongoose.Types.ObjectId }
+	questionTopic: {type: String},
+	questionText: {type: String},
+	question: { type:mongoose.Types.ObjectId },
+	parentComment: { type:mongoose.Types.ObjectId }
 }, { collation: { locale: 'en_US', strength: 1 } })
 commentsSchema.index({
-	comment: "text"	
+	comment: "text"	,
+	userAvatar: "text"	,
+	topic: "text"	
 });
 
 
@@ -43,11 +48,38 @@ const mnemonicsSchema = new mongoose.Schema({
     updated_date: { type: Number}, 
     mnemonic: { type: String },
 	user: { type:mongoose.Types.ObjectId },
-	question: { type:mongoose.Types.ObjectId }
+	question: { type:mongoose.Types.ObjectId },
+	access: { type: String},
 }, { collation: { locale: 'en_US', strength: 1 } })
 mnemonicsSchema.index({
 	title: "text"
 });
+
+const classesSchema = new mongoose.Schema({
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    start_date: { type: Number}, 
+    end_date: { type: Number}, 
+    name: { type: String },
+	user: { type:mongoose.Types.ObjectId },
+	topics: {type: Array },
+	students: {type: Array },
+	access: { type: String},
+}, { collation: { locale: 'en_US', strength: 1 } })
+classesSchema.index({
+	name: "text"
+});
+
+const usersSchema = new mongoose.Schema({
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    avatar: { type: String },
+    email: { type: String },
+    username: { type: String },
+}, { collation: { locale: 'en_US', strength: 1 } })
+usersSchema.index({
+	name: "text"
+}); 
 
 const grabsSchema = new mongoose.Schema({
 	created_date: { type: Number}, 
@@ -68,6 +100,7 @@ const multipleChoiceQuestionsSchema = new mongoose.Schema({
 	multiple_choice: { type: String},
 	also_accept: { type: String},
 	user: { type:mongoose.Types.ObjectId },
+	access: { type: String},
 	questionId: { type:mongoose.Types.ObjectId }
 }, { collation: { locale: 'en_US', strength: 1 } })
 multipleChoiceQuestionsSchema.index({
@@ -153,4 +186,4 @@ const successSchema = new mongoose.Schema({
  })
 
 
-module.exports = {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema,  seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema}
+module.exports = {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema,  seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema, classesSchema, usersSchema}

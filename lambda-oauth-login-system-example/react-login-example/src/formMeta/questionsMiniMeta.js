@@ -62,8 +62,8 @@ export default function questionsMiniMeta(props) {
 			]},
 			{key:'g2',title:'', fields:[
 				{
-					field:'question',
-					label:'',
+					field:'question_full',
+					label:'qq',
 					width: 8,
 					component:TextComponent,
 					props:{allowFullScreen: false}

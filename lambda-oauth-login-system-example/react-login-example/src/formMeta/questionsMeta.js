@@ -17,18 +17,14 @@ import questionCommentMeta from './questionCommentMeta'
 // eslint-disable-next-line
 import questionMultipleChoiceMeta from './questionMultipleChoiceMeta'
 import {Button} from 'react-bootstrap'
+import {addLeadingZeros} from '../helpers'
 
 const replyIcon = 
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-reply-fill" viewBox="0 0 16 16">
   <path d="M5.921 11.9 1.353 8.62a.719.719 0 0 1 0-1.238L5.921 4.1A.716.716 0 0 1 7 4.719V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/>
 </svg>
 
-function addLeadingZeros(n) {
-  if (n <= 9) {
-    return "0" + n;
-  }
-  return n
-}
+
 
 
 export default function questionsMeta(props) {
@@ -105,7 +101,7 @@ export default function questionsMeta(props) {
 			]},
 			{key:'g2',title:'', fields:[
 				{
-					field:'question',
+					field:'question_full',
 					label:'Question',
 					width: 12,
 					component:HighlightableTextComponent,
@@ -222,7 +218,7 @@ export default function questionsMeta(props) {
 							//if (!newValue && props.user && loginContext.user._id && loginContext.user.avatar) {
 								//newValue =  loginContext.user.avatar+"'s Notes" 
 							//} 
-							return { access:'public', userAvatar : props.user ? props.user.avatar : '', topic: item ? item.quiz : '' }//, topic: value.quiz 
+							return { access:'public', userAvatar : props.user ? props.user.avatar : '', questionTopic: item ? item.quiz : '',  questionText: item.question_full }//, topic: value.quiz 
 						 },
 						itemButtons:[
 						   function(item, callback) { 
@@ -232,7 +228,7 @@ export default function questionsMeta(props) {
 							//+ ":" + addLeadingZeros(currentDatetime.getSeconds())
 							 return <span key={item.itemkey} >
 									<Button key="info" variant="info"  style={{float:'left'}} title={ 'Block'} ><b>{createdDate}</b> &nbsp;{item.userAvatar ? ' by ' + item.userAvatar : ''}</Button> 
-									<Button key="reply" variant="success" style={{float:'left', marginLeft:'0.2em'}} onClick={function(e) {if (item.createNew) item.createNew(item, item.itemkey + 1);  else console.log(props) ; }} title={ 'Reply'} >{replyIcon}</Button>
+									<Button key="reply" variant="success" style={{float:'left', marginLeft:'0.2em'}} onClick={function(e) {if (item.createNew) item.createNew(Object.assign({},item,{questionTopic: item.questionTopic, questionText: item.questionText, userAvatar: item.userAvatar, question: item.question, parentComment: item._id}), item.itemkey + 1);  else console.log(props) ; }} title={ 'Reply'} >{replyIcon}</Button>
 								</span>
 						    }
 						]

@@ -285,7 +285,7 @@ export default function ReviewPage(props) {
 					<div><ItemForm {...formProps}  editable={false}/></div>
 			<hr/>
 				<div style={{position: 'fixed', bottom: 0, left: 0, width:'100%'}} >
-					<Row>
+					{reviewItem && <Row>
 						<Col className='xs-2' >
 							<DropDownSelectorComponent variant="info" title={'Show'} buttonContent={viewIcon} value={''} options={viewOptions} onChange={function(value) {
 							   switch(value) {
@@ -323,7 +323,7 @@ export default function ReviewPage(props) {
 						<Col className='xs-2' >
 							<Button onClick={function(e) {if (window.confirm('Block this question from your review list ?')) props.reviewApi.block(props.user,reviewItem).then(function() {updateReviewList()})} }   style={{float:'right', marginRight:'2em'}} variant="danger" title="Block" >{blockOnIcon}</Button>
 						</Col>
-					</Row>
+					</Row>}
 				</div>
 			</div>}
   			

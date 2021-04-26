@@ -133,7 +133,7 @@ function indexTags(tags) {
 
 var template = '' 
 const restifyOptions = require('./restifyOptions')    
-const {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema, seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema} = require('./schema')
+const {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema, seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema, classesSchema, usersSchema} = require('./schema')
 var restifyRouter = express.Router();
 const {extractMediaFields, deleteBucket} = require('./extractMediaFields')
 
@@ -161,7 +161,8 @@ const Topics = mongoose.model('topics',topicsSchema )
 const MultipleChoiceQuestions = mongoose.model('multipleChoiceQuestions',multipleChoiceQuestionsSchema )
 const Comments = mongoose.model('comments',commentsSchema )
 const Grabs = mongoose.model('grabs',grabsSchema )
-
+const Classes = mongoose.model('classes',classesSchema )
+const Users = mongoose.model('users',usersSchema )
 //const Seen = mongoose.model('seen',seenSchema )
 //const Success = mongoose.model('successes',successSchema )
 //const QuestionStats = mongoose.model('questionStats',questionStatsSchema )
@@ -176,6 +177,8 @@ const mongooseModels={
 	multipleChoiceQuestions: MultipleChoiceQuestions,
 	comments: Comments,
 	grabs: Grabs,
+	classes: Classes,
+	users: Users,
 	//seen: Seen,
 	//success: Success,
 	//questionStats: QuestionStats,
@@ -217,12 +220,12 @@ questionsSchema.virtual('multipleChoiceQuestions', {
     //justOne: false,   
 //});
 
-commentsSchema.virtual('userFull', {
-    ref: 'users',
-    localField: 'user',
-    foreignField: '_id',
-    justOne: true,   
-});
+//commentsSchema.virtual('userFull', {
+    //ref: 'users',
+    //localField: 'user',
+    //foreignField: '_id',
+    //justOne: true,   
+//});
 commentsSchema.virtual('questionFull', {
     ref: 'questions',
     localField: 'question',

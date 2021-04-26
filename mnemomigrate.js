@@ -1,3 +1,9 @@
+// REFRESH 
+docker exec -it mongo_mongo_1 bash
+mongorestore -u adminloginsystem -p adminloginsystem -h localhost --authenticationDatabase admin --db loginsystem dump/mnemo/
+
+
+
 // ensure updated_date
 db.questions.updateMany(
     {$or:[{"updated_date":{"$eq":null}}, {"updated_date":{"$eq":''}}]},
@@ -11,30 +17,9 @@ db.questions.updateMany(
 // TODO
 // questions with no answer but link => load from, wikipedia
 
-//mcquestions
-//- option generator_[collection|filter|field]
-// ensure parent question
-//- multiple choice -> multiple_choice_options []
-
-db.multiplechoicequestions.find({}).forEach(function(doc) {
-  db.multiplechoicequestions.update({_id:doc._id}, 
-    {$set:{multiple_choice_options:new String(doc.multiple_choices).split("|||")}}, 
-    { multi: false, upsert: false}
-  )  
-})
-
-
 // mnemonics - migrate type from questions ?
 
 
-// question - join pre, interrogative, question, post into general_question
-// * TODO build ML model of combined question => question field as slot question_target
-db.questions.updateMany(
-    {},
-    [
-        {"$set": {"general_question": {"$concat":["$pre",' ',"$interrogative",' ',"$question",' ',"$post",' ']}}}
-    ]
-)
 
 // media
 media
@@ -48,23 +33,84 @@ image
 imageattribution
 autoshow_image
 
+db.questions.find({
+    $and:[
+        {image:{$ne:null}},
+        {image:{$ne:''}},
+        {image:{$not:/seasky.org/}},
+        {image:{$not:/abc.net.au/}},
+        {image:{$not:/wikimedia.org/}},
+        {image:{$not:/mathopenref.com/}},
+        {image:{$not:/data:/}},
+        {image:{$ne:[]}}
+    ]})
+   .projection({image:1})
+   .sort({_id:-1})
+   .limit(2000)
+   
+// QUESTIONS   
 db.questions.find({}).forEach(function(doc) {
-	var data = {}
-	var doUpdate = false
+// merge question fields
+	var data = []
+	var parts = []
+	if (doc.pre) parts.push(doc.pre) 
+	if (doc.interrogative) parts.push(doc.interrogative)
+	if (doc.question) parts.push(doc.question)
+	if (doc.post) parts.push(doc.post)
+	data.question_full = parts.join(' ')
+	data.question_subject = doc.question
+	
+	  
+	  
+	  
+	  
+// images
 	if (doc.image) {
 		data.images= [{href: doc.image, attribution: doc.imageattribution, autoplay: doc.autoshow_image}]
-		doUpdate = true
+	} else {
+		data.images=[]
 	}
+	
 	if (doc.media) {
 		data.medias= [{href: doc.media, attribution: doc.mediaattribution, autoplay: doc.autoplay_media}]
-		doUpdate = true
+	} else {
+		data.medias=[]
 	}
-	if (doUpdate) {
-		  db.questions.update({_id:doc._id}, 
-			{$set:data}, 
-			{ multi: false, upsert: false}
-		  )  
-	}
+	
+	
+	
+	
+	  db.questions.update({_id:doc._id}, 
+		{$set:data}, 
+		{ multi: false, upsert: false}
+	  )  
+
 })
 
 
+// MCQUESTIONS
+//- option generator_[collection|filter|field]
+// ensure parent question
+//- multiple choice -> multiple_choice_options []
+
+db.multiplechoicequestions.find({}).forEach(function(doc) {
+  db.multiplechoicequestions.update({_id:doc._id}, 
+    {$set:{access:"public", multiple_choice_options:new String(doc.multiple_choices).split("|||")}}, 
+    { multi: false, upsert: false}
+  )  
+})
+
+db.comments.find({}).forEach(function(doc) {
+	var d = 0
+	if (doc.createDate) {
+		var st = doc.createDate
+		var pattern = /(\d{2})\.(\d{2})\.(\d{4})/;
+		var dt = new Date(st.replace(pattern,'$3-$2-$1'));
+
+		d = dt.getTime()
+	}
+  db.comments.update({_id:doc._id}, 
+    {$set:{userEmail:'',created_date: d, updated_date: d, access:"public"}}, 
+    { multi: false, upsert: false}
+  )  
+})
