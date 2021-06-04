@@ -167,7 +167,7 @@ export default function MediaEditorComponent(props) {
 				return link
 			}
 		} else {
-			if (url.indexOf('data:') === 0) {
+			if (url && url.indexOf('data:') === 0) {
 				//console.log('DATAURL')
 				var parts = url.split(";")
 				var iparts = parts.length > 0 ? parts[0].split(":") : []
@@ -214,7 +214,7 @@ export default function MediaEditorComponent(props) {
 			//var blob = button.base64 ? new Blob([decodeFromBase64(button.base64)], {type: button.mime}) : null
 			
 
-			return <div style={{clear:'both'}} key={buttonKey}>
+			return !button ? null : <div style={{clear:'both'}} key={buttonKey}>
 			
 				{!props.readOnly && <Button variant="danger" onClick={function(e) {deleteListItemData(buttonKey)}} > X </Button>}
 				{!props.readOnly && <Button variant="primary"onClick={function(e) {moveListItemDataUp(buttonKey)}}  > ^ </Button>}
@@ -222,7 +222,7 @@ export default function MediaEditorComponent(props) {
 				
 				
 				<label>&nbsp;&nbsp;&nbsp;URL&nbsp;&nbsp; 
-				{!props.readOnly && <input size="60" type="text" value={button.href} onChange={function(e) {var newButton = button; newButton.href = e.target.value; updateListItemData(buttonKey,newButton)}} />}
+				{!props.readOnly && <input size="60" type="text" value={button.href} onChange={function(e) {var newButton = button ? button : {}; newButton.href = e.target.value; updateListItemData(buttonKey,newButton)}} />}
 				{!!props.readOnly && <span>{button.href}</span>}
 				</label>
 				
@@ -252,7 +252,7 @@ export default function MediaEditorComponent(props) {
 			{(Array.isArray(props.value)) && props.value.map(function(media) {
 				return <span style={{position:'relative'}}>
 					{getMediaElement(media)}
-					<span style={{position:'absolute', bottom: 0, left: 0}} >{media.attribution ? media.attribution : ''}</span>
+					<div style={{fontSize:'small'}} ><i>{media.attribution ? media.attribution : ''}</i></div>
 				</span>
 				
 			})}

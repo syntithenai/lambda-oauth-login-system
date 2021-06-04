@@ -8,7 +8,7 @@ export default class ExternalLogin   extends Component {
    constructor(props) {
         super(props)
         this.state = {
-			loginCheckActive: false,
+			loginCheckActive: true,
 			doLoginRedirect: null,
 			warning_message: '',
 			 confirmIframeLoaded: false, 
@@ -57,6 +57,7 @@ export default class ExternalLogin   extends Component {
          if (window.location.search.indexOf('code=') === -1) {
 			that.createLoginIframe()
 		}
+		this.setState({'loginCheckActive':true})
      }
     
      receiveMessage(event) {
@@ -87,42 +88,44 @@ export default class ExternalLogin   extends Component {
 			// after oauth flow
 			} else if (event.data && event.data.oauth_success) {
 				that.isBusy = false
-				that.setState({'loginCheckActive':false})
 				that.setUser(event.data.oauth_success)
+				that.setState({'loginCheckActive':false})
 				that.testIframeLogin(event.data.oauth_success)
 				// stop oauth polling
 				if (this.pollAuthSuccessTimeout) clearTimeout(this.pollAuthSuccessTimeout)
 				//window.location = window.location.origin + window.location.pathname + "#" + that.props.loginRedirect
+				if (that.props.onLogin) that.props.onLogin(event.data.oauth_success) 
 				that.setState({doLoginRedirect: that.props.loginRedirect})
 			// just the user
 			//} else if (event.data && event.data.login_success) {
 				// IMPLEMENTED IN LOGIN COMPONENT SWITCHED BY testIframeLogin
 			} else if (event.data && event.data.login_success) {
-				that.setState({'loginCheckActive':false})
 				that.isBusy = false
 				//console.log('LOGIN SUCCESS EVENT')
 				that.setUser(event.data.user)
 				that.testIframeLogin()
 				if (that.pollAuthSuccessTimeout) clearTimeout(that.pollAuthSuccessTimeout)
+				that.setState({'loginCheckActive':false})
+				if (that.props.onLogin) that.props.onLogin(event.data.user) 
 				that.setState({doLoginRedirect: that.props.loginRedirect})
 				
 			} else if (event.data && event.data.login_fail) {
-				that.setState({'loginCheckActive':false})
 				that.isBusy = false
 				//console.log('LOGIN FAIL EVENT')
 				// show error message
 				//console.log(event.data.login_fail)
 				that.submitWarning(event.data.login_fail)
+				that.setState({'loginCheckActive':false})
 				if (that.pollAuthSuccessTimeout) clearTimeout(that.pollAuthSuccessTimeout)
 				
 			}
 			// ?? TODO remove
 			 else if (event.data.check_login_ok && event.data.hasOwnProperty('user')) {
-				that.setState({'loginCheckActive':false})
 				that.isBusy = false
 				 //console.log('UPDATE USER')
 				 //console.log(event.data)
 				if (event.data && event.data.user) this.setUser(event.data.user)
+				that.setState({'loginCheckActive':false})
 				if (this.pollLoginTimeout) clearTimeout(this.pollLoginTimeout)	
 			}
 		}
@@ -311,6 +314,7 @@ export default class ExternalLogin   extends Component {
 					that.checkIsLoggedIn(popup, count+1)
 				}
 			},2000)
+			this.setState({'loginCheckActive':true})
 		//}
     }
 
@@ -321,11 +325,12 @@ export default class ExternalLogin   extends Component {
 		if (this.loginPopup) this.loginPopup.close() 
 		this.loginPopup = window.open(url,'mywin','resizable=no, scrollbars=no, status=no, width=10,height=10, top: 0, left:'+window.screen.availHeight+10);
 		that.checkIsLoggedIn(this.loginPopup)
+		this.setState({'loginCheckActive':true})
 		// timeout close
 		setTimeout(function() {
 			that.loginPopup.close()
 			that.loginPopup = null
-			that.setState({'loginCheckActive':false})
+			if (false) that.setState({'loginCheckActive':false})
 			// auto refresh token
 			if (that.refreshTimeout) clearTimeout(that.refreshTimeout)
 			that.refreshTimeout = setTimeout(function() {
@@ -353,13 +358,14 @@ export default class ExternalLogin   extends Component {
 		i.onload = function() {
 		  var popup = i.contentWindow
 		  that.checkIsLoggedIn(popup)
+		  that.setState({'loginCheckActive':true})
 		}
 		document.body.appendChild(i)
 		// timeout close
 		
 		setTimeout(function() {
 			document.body.removeChild(i)
-			that.setState({'loginCheckActive':false})
+			if (false) that.setState({'loginCheckActive':false})
 			// auto refresh token
 			if (that.refreshTimeout) clearTimeout(that.refreshTimeout)
 			that.refreshTimeout = setTimeout(function() {
@@ -397,7 +403,7 @@ export default class ExternalLogin   extends Component {
     
     postlogout(bearerToken) {
       let that = this;
-	  const axiosClient = getAxiosClient(bearerToken);
+      const axiosClient = getAxiosClient(bearerToken);
 	  return axiosClient( {
 		  url: that.props.loginServer+'/api/logout',
 		  method: 'post',
@@ -410,6 +416,7 @@ export default class ExternalLogin   extends Component {
 		let that = this
 		var origin = new URL(that.props.loginServer).origin
        	if (this.isLoggedIn()) this.postlogout(this.state.user.token.access_token)
+	    if (that.props.onLogout) that.props.onLogout()
 	    this.setUser(null)
 	}
 	  

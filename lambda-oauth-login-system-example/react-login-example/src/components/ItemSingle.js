@@ -5,39 +5,32 @@ import {getAxiosClient, isEditable} from '../helpers'
 import useLocalForageAndRestEndpoint from '../useLocalForageAndRestEndpoint'
 import ItemForm from './ItemForm'
 
-const closeIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-x" viewBox="0 0 16 16">
-  <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-</svg>
-
-const deleteIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-  <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-</svg>
-
-
-const refreshIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-clockwise" viewBox="0 0 16 16">
-  <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-  <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-</svg>
+import icons from '../icons'
+const {closeIcon, viewIcon, deleteIcon, refreshIcon} = icons
 
 export default function ItemSingle(props) {
 
 	const axiosClient = props.isLoggedIn() ? getAxiosClient(props.user.token.access_token) : getAxiosClient()
-	const {saveField, saveItemNow, deleteItem, getItem, refreshItem} = useLocalForageAndRestEndpoint({user: props.user, modelType:props.modelType,axiosClient:axiosClient,restUrl:'/dev/handler/rest/api/v1/',startWaiting:props.startWaiting,stopWaiting: props.stopWaiting,onItemQueued: props.onItemQueued,onStartSaveQueue: props.onStartSaveQueue,onFinishSaveQueue: props.onFinishSaveQueue, autoSaveDelay: props.autoSaveDelay, autoRefresh: props.autoRefresh ? true : false , populate: props.populate})
+	const {searchItems, setItems, saveField, saveItemNow, deleteItem, getItem, refreshItem, items} = useLocalForageAndRestEndpoint({user: props.user, modelType:props.modelType,axiosClient:axiosClient,restUrl:'/dev/handler/rest/api/v1/',startWaiting:props.startWaiting,stopWaiting: props.stopWaiting,onItemQueued: props.onItemQueued,onStartSaveQueue: props.onStartSaveQueue,onFinishSaveQueue: props.onFinishSaveQueue, autoSaveDelay: props.autoSaveDelay, autoRefresh: props.autoRefresh ? true : false , populate: props.populate , createIndexes: props.createIndexes})
 	//console.log(props)
 	const history = useHistory()
 	const location = useLocation()
 	//console.log(location)
 	var parts = location.pathname.split("/")
 	var basePath = parts.length > 0 ? "/" + parts[1]  : ""
-	const [item,setItem] = useState({})
+	//const [item,setItem] = useState({})
+	var item = items && items.length > 0 ? items[0] : null
+	function setItem(item) {
+		setItems([item])
+	}
 	// use props item or id in preference, fallback to params
 	//const params = useParams();
 	const { id, topic } = props.match.params
 	//console.log(props.match.params)
 	//console.log(['param',id,topic])
 	const [progress, setProgress] = useState(null)
-	
+	const [forceView, setForceView] = useState(false)
+				
 	var parent = props.match.url.split("/").slice(0,-1).join('/')
 	//console.log(['parent',parent])
 	//
@@ -48,23 +41,23 @@ export default function ItemSingle(props) {
 		} else {
 			const useId = props.id ? props.id : id;
 			if (!useId) { 
-				
 				//console.log(props.createItem)
 				var newItem = props.createItem ? props.createItem({topic:topic}) : {}
 				saveItemNow(newItem).then(function(newItem) {
 					//console.log(['created new item',newItem])
 					setItem(newItem)
-					history.push(basePath+"/"+newItem._id)
+					history.replace(basePath+"/"+newItem._id)
 				})
 			} else {
-				//console.log('getItem '+useId)
-				getItem(useId,function(item) {
-					//console.log('getItem got '+item._id)
-					if (item  && item._id) {
+				console.log('getItem '+useId)
+				searchItems({_id:useId})
+				//getItem(useId,function(item) {
+					////console.log('getItem got '+item._id)
+					//if (item  && item._id) {
 						//console.log('getItem set '+item._id)
-						setItem(item)
-					} 
-				})
+						//setItem(item)
+					//} 
+				//})
 			}
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,14 +81,19 @@ export default function ItemSingle(props) {
 	},[item,props.user])
 	
 	function doSaveField(field,value,item,key) {
+		var newItem = item ? item : {}
+		newItem[field] = value
+		setItem(newItem)
 		return new Promise(function(resolve,reject) {
-			//console.log(['dosavefield',field,value,item,key])
-			saveField(field,value,item,key).then(function(newItem) {
-				setItem(newItem)
+			console.log(['dosavefield',field,value,item,key])
+			
+			saveField(field,value,item,-1).then(function(newItem) {
 				resolve()
 			})
 		})
 	}
+	var editable = props.isEditable ? props.isEditable(item,props.user) : isEditable(item,props.user)
+	if (forceView) editable = false
 	
 	const formProps = Object.assign({},props,{
 		axiosClient: axiosClient, 
@@ -104,7 +102,7 @@ export default function ItemSingle(props) {
 		refreshItem: refreshItem,
 		categoryOptions: props.tags,
 		//isEditable: props.isEditable
-		editable: props.isEditable ? props.isEditable(item,props.user) : isEditable(item,props.user)
+		editable: editable
 	})
 	formProps.fieldMeta = props.fieldMeta(formProps)
 	
@@ -113,7 +111,7 @@ export default function ItemSingle(props) {
 	//} else {
 		//const editable = props.isEditable ? props.isEditable(item,props.user) : isEditable(item,props.user)
 	
-		return <div style={{width:'100%'}}>   
+		return <div style={{width:'98%', marginLeft:'1em'}}>   
 			<div style={{height: '4em'}} ></div>
 			<Button title="Close"  onClick={function() {history.goBack() /*push(basePath)*/}}  style={{float:'right', marginLeft:'0.2em'}}  >{closeIcon}</Button>
 			<Button  title="Refresh" style={{float:'right', marginLeft:'0.2em'}} variant="warning" onClick={function() {
@@ -123,7 +121,7 @@ export default function ItemSingle(props) {
 			}} >{refreshIcon}</
 			Button>
 				
-			{(item && item._id && formProps.editable) && <Button  title="Delete"  style={{float:'right', marginLeft:'0.2em'}} variant="danger" onClick={function(e) {if (window.confirm('Really delete ?'))  {deleteItem(item._id); history.push(parent)}}} >{deleteIcon}</Button>}
+			{(item && item._id && formProps.editable) && <Button  title="Delete"  style={{float:'right', marginLeft:'0.2em'}} variant="danger" onClick={function(e) {if (window.confirm('Really delete ?'))  {deleteItem(item); history.push(parent)}}} >{deleteIcon}</Button>}
 			
 			{Array.isArray(props.buttons) ? <>{props.buttons.map(function(button,bkey) {
 				if (typeof button === 'function' ) {
@@ -137,6 +135,8 @@ export default function ItemSingle(props) {
 					return button
 				}
 			})}</> : null }	
+			
+			{(props.user && props.user._id) && <Button title="Preview" variant={forceView ? 'success': 'secondary'} onClick={function() {setForceView(!forceView)}}  style={{float:'right', marginLeft:'0.2em'}}  >{viewIcon}</Button>}
 			
 			{(item && item._id) && <div>
 			 <ItemForm  {...formProps}  />

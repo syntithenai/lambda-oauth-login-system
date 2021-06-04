@@ -4,21 +4,21 @@ import React from 'react';
 import {Form, Row, Col} from 'react-bootstrap'
 
 // eslint-disable-next-line 
-import CheckboxComponent from './CheckboxComponent'
+import CheckboxComponent from '../form_field_components/CheckboxComponent'
 // eslint-disable-next-line 
-import TagsComponent from './TagsComponent'
+import TagsComponent from '../form_field_components/TagsComponent'
 // eslint-disable-next-line 
-import MediaEditorComponent from './MediaEditorComponent'
+import MediaEditorComponent from '../form_field_components/MediaEditorComponent'
 // eslint-disable-next-line
-import RatingsComponent from './RatingsComponent'
+import RatingsComponent from '../form_field_components/RatingsComponent'
 // eslint-disable-next-line
-import DropDownComponent from './DropDownComponent'
+import DropDownComponent from '../form_field_components/DropDownComponent'
 // eslint-disable-next-line
-import TextComponent from './TextComponent'
+import TextComponent from '../form_field_components/TextComponent'
 // eslint-disable-next-line
-import TextareaComponent from './TextareaComponent'
+import TextareaComponent from '../form_field_components/TextareaComponent'
 // eslint-disable-next-line
-import SelectComponent from './SelectComponent'
+import SelectComponent from '../form_field_components/SelectComponent'
 
 import {getAxiosClient, isEditable} from '../helpers'  
 //import useLocalForageAndRestEndpoint from '../useLocalForageAndRestEndpoint'
@@ -47,7 +47,7 @@ export default function ItemForm(props) {
 	
 	////const tags = getDistinct('tags','title')
 	//const editable = true //isEditable(props.item,props.user)
-	//console.log(props)
+	//console.log(fieldMeta)
 			
 	return <div  >
 	{fieldMeta && Array.isArray(fieldMeta.groups) && fieldMeta.groups.map(function(group,gkey) {
@@ -61,16 +61,16 @@ export default function ItemForm(props) {
 					}
 				}
 				
-				
 				const onChange = typeof field.onChange === "function" ? field.onChange : function(value) { 
-					console.log(['onchange',onChange,props.saveField]); 
+					console.log(['onchange',onChange,props.saveField,value,field.field,props.item,props.itemkey]); 
 					if (props.saveField) { 
-						props.saveField(field.field,value,props.item,props.itemkey); 
-						console.log(['onchanged'])
+						props.saveField(field.field,value,props.item,props.itemkey).then(function() {
+							console.log(['onchanged'])
+						})
 					}
 				}
 				
-				var fieldProps = Object.assign({},field.props,{
+				var fieldProps = Object.assign({autoSaveDelay: props.autoSaveDelay, minimumBatchSize: props.minimumBatchSize, threshold: props.threshold},field.props,{
 						value:getFieldValue(props.item),
 						parent: props.item,
 						//displayValue:getFieldDisplayValue(props.item),
@@ -78,7 +78,7 @@ export default function ItemForm(props) {
 						axiosClient: axiosClient, 
 						isLoggedIn: props.isLoggedIn, 
 						user: props.user,
-						autoSaveDelay: props.autoSaveDelay, 
+						loginCheckActive: props.loginCheckActive,
 						startWaiting:props.startWaiting,
 						stopWaiting: props.stopWaiting,
 						onItemQueued: props.onItemQueued,
@@ -86,7 +86,8 @@ export default function ItemForm(props) {
 						onFinishSaveQueue: props.onFinishSaveQueue,
 						tags: props.tags,
 						topics: props.topics,
-						reviewApi: props.reviewApi
+						reviewApi: props.reviewApi,
+						
 					  //  props: (field.props ? field.props : {})  
 					  })
 				if (field.props && props.item && field.props.parentField) fieldProps.parentValue = props.item._id
@@ -120,26 +121,17 @@ export default function ItemForm(props) {
 						if (!fieldProps.value) {
 							//console.log('from empty')
 							hideField = true
-						// hide field and label if empty array
-						//} else if ((fieldProps.value && Array.isArray(fieldProps.value) && fieldProps.value.length === 0))   {
-							////console.log('from empty array')
-							//hideField = true
+						// hide field and label if empty array 
+						} else if ((fieldProps.value && Array.isArray(fieldProps.value) && fieldProps.value.length === 0))   {
+							//console.log('from empty array')
+							if (!fieldEditable) hideField = true
 						}
 					} 
 				}
 				
-				
-				
-				//(
-						//(field && field.props && ((formEditable && field.props.hidden_in_form) || (!formEditable && field.props.hidden_in_view) )) 
-						//|| (!fieldEditable && (
-							//!fieldProps.value 
-							//|| (fieldProps.value && Array.isArray(fieldProps.value) && fieldProps.value.length === 0)
-						//) 
-					//)
-				//)
 				//console.log(['FIELDPROPS',field.field,formEditable,fieldEditable,hideField, fieldProps,field,field.props])
 				//console.log(['FIELDPROPS',field.field,hideField])	
+				// render both and use CSS display to hide to avoid variable number of useEffect calls in children
 				return <Col style={{display: (hideField ? 'none' : 'block')}} key={fieldKey} xs={field.width > 0 ? field.width : 'auto'}>
 					{(field && field.label) && <Form.Label key={'daformLabel'} > <b>{field.label}</b> </Form.Label>}
 					<div key={'daformInput'} style={{display: ((fieldEditable)) ? 'block' : 'none'}} >{field.component(Object.assign({},fieldProps,{readOnly: false}))}</div>

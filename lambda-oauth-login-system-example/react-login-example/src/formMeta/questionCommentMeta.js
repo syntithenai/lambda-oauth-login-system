@@ -26,15 +26,10 @@ export default function questionCommentMeta(props) {
 					
 					props:{
 						allowFullScreen: true ,
-						buttons:[<Button>HI</Button>,
-						   function(item, callback) { 
-							 console.log(['BC',item,item ? item.itemkey : 'none'])
-							 return <span key={item.itemkey} >
-									dddd<Button key="info" variant="info"  style={{float:'left'}} title={ 'Block'} >{item.userAvatar}</Button> 
-									<Button key="reply" variant="success" style={{float:'left', marginLeft:'0.2em'}} onClick={function(e) { }} title={ 'Reply'} >{replyIcon}</Button>
-								</span>
-						    }
-						]
+						editInline: true, 
+						rows: 4, 
+						cols: 50,
+						
 					},
 					
 				}

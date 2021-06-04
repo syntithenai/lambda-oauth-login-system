@@ -45,6 +45,36 @@ function getDistinct(axiosClient, restUrl, modelType ,field) {
 	})
 }
 
+function getByFieldValues(axiosClient, restUrl, modelType ,field, values) {
+	return new Promise(function(resolve,reject) {
+		axiosClient.get(restUrl+modelType+'?query='+JSON.stringify({'$or':values.map(function(value) {
+				var q = {}
+				q[field] = {'$eq':value}
+				return q
+			})
+			}),
+		  {},{
+			headers: {
+				'Content-Type': 'application/json'
+			  },
+		  }
+		).then(function(res) {
+		  console.log(['GET many by values',res])  
+		  if (res && res.data && Array.isArray(res.data)) { 
+			  //var sorted = res.data.sort(function(a,b) { if (a && b &&  a.toLowerCase().trim() < b.toLowerCase().trim()) {return -1} else {return 1}})
+			  //console.log(sorted) 	
+			resolve(res.data)
+		  } else {
+			  resolve([])
+		  }
+		}).catch(function(res) {
+		  //console.log(res)  
+		  reject({error: 'Invalid request error'})
+		})
+	})
+}
+
+
 function getCookie(name) {
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
@@ -69,7 +99,7 @@ function getCsrfQueryString() {
 }
 
 function scrollToTop() {
-    document.body.scrollTop = 0; // For Safari
+	document.body.scrollTop = 0; // For Safari
     document.documentElement.scrollTop = 0;
 }
 
@@ -154,4 +184,20 @@ function getAxiosClient(accessToken)	{
 	  }
 	  return n
 	}
-export {isEditable, getDistinct, decodeFromBase64, generateObjectId,uniquifyArray,scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath, YouTubeGetID, getRandomString,analyticsEvent, addLeadingZeros}
+	
+		//function chunkArray (arr, len) {
+
+	  //var chunks = [],
+		  //i = 0,
+		  //n = arr.length;
+
+	  //while (i < n) {
+		//chunks.push(arr.slice(i, i += len));
+	  //}
+
+	  //return chunks;
+	//}
+	
+	
+	
+export {isEditable, getDistinct, decodeFromBase64, generateObjectId,uniquifyArray,scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString, getParentPath, YouTubeGetID, getRandomString,analyticsEvent, addLeadingZeros, getByFieldValues}

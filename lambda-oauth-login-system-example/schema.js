@@ -7,10 +7,22 @@ const topicsSchema = new mongoose.Schema({
     topic: { type: String },
 	description: { type: String }
 }, { collation: { locale: 'en_US', strength: 1 } })
-topicsSchema.index({
-		topic: "text",
-		description:"text"
-});
+
+
+const topicCategoriesSchema = new mongoose.Schema({
+	created_date: { type: Number}, 
+    updated_date: { type: Number}, 
+    user: { type:mongoose.Types.ObjectId },
+    name: { type: String },
+	icon: { type: String },
+	sort: { type: Number },
+	topics: {type: Array },
+}, { collation: { locale: 'en_US', strength: 1 } })
+ 
+//topicsSchema.index({
+		//topic: "text",
+		//description:"text"
+//});
 
 const commentsSchema = new mongoose.Schema({
 	created_date: { type: Number}, 
@@ -26,11 +38,11 @@ const commentsSchema = new mongoose.Schema({
 	question: { type:mongoose.Types.ObjectId },
 	parentComment: { type:mongoose.Types.ObjectId }
 }, { collation: { locale: 'en_US', strength: 1 } })
-commentsSchema.index({
-	comment: "text"	,
-	userAvatar: "text"	,
-	topic: "text"	
-});
+//commentsSchema.index({
+	//comment: "text"	,
+	//userAvatar: "text"	,
+	//topic: "text"	
+//});
 
 
 const tagsSchema = new mongoose.Schema({
@@ -39,9 +51,9 @@ const tagsSchema = new mongoose.Schema({
     user: { type:mongoose.Types.ObjectId },
     title: { type: String }
 }, { collation: { locale: 'en_US', strength: 1 } })
-tagsSchema.index({
-		title: "text"
-});
+//tagsSchema.index({
+		//title: "text"
+//});
 
 const mnemonicsSchema = new mongoose.Schema({
 	created_date: { type: Number}, 
@@ -51,9 +63,9 @@ const mnemonicsSchema = new mongoose.Schema({
 	question: { type:mongoose.Types.ObjectId },
 	access: { type: String},
 }, { collation: { locale: 'en_US', strength: 1 } })
-mnemonicsSchema.index({
-	title: "text"
-});
+//mnemonicsSchema.index({
+	//title: "text"
+//});
 
 const classesSchema = new mongoose.Schema({
 	created_date: { type: Number}, 
@@ -66,9 +78,9 @@ const classesSchema = new mongoose.Schema({
 	students: {type: Array },
 	access: { type: String},
 }, { collation: { locale: 'en_US', strength: 1 } })
-classesSchema.index({
-	name: "text"
-});
+//classesSchema.index({
+	//name: "text"
+//});
 
 const usersSchema = new mongoose.Schema({
 	created_date: { type: Number}, 
@@ -77,9 +89,9 @@ const usersSchema = new mongoose.Schema({
     email: { type: String },
     username: { type: String },
 }, { collation: { locale: 'en_US', strength: 1 } })
-usersSchema.index({
-	name: "text"
-}); 
+//usersSchema.index({
+	//name: "text"
+//}); 
 
 const grabsSchema = new mongoose.Schema({
 	created_date: { type: Number}, 
@@ -88,9 +100,9 @@ const grabsSchema = new mongoose.Schema({
     url: { type: String },
 	user: { type:mongoose.Types.ObjectId },
 }, { collation: { locale: 'en_US', strength: 1 } })
-grabsSchema.index({
-	title: "text"
-});
+//grabsSchema.index({
+	//title: "text"
+//});
 
 const multipleChoiceQuestionsSchema = new mongoose.Schema({
 	created_date: { type: Number}, 
@@ -98,16 +110,17 @@ const multipleChoiceQuestionsSchema = new mongoose.Schema({
     specific_question: { type: String},
 	specific_answer: { type: String},
 	multiple_choice: { type: String},
-	also_accept: { type: String},
+	also_accept: { type: Array},
 	user: { type:mongoose.Types.ObjectId },
 	access: { type: String},
 	questionId: { type:mongoose.Types.ObjectId }
 }, { collation: { locale: 'en_US', strength: 1 } })
-multipleChoiceQuestionsSchema.index({
-	specific_question: "text",
-	specific_answer: "text",
-	multiple_choice: "text",
-});
+
+//multipleChoiceQuestionsSchema.index({
+	//specific_question: "text",
+	//specific_answer: "text",
+	//multiple_choice: "text",
+//});
 
 
 const questionsSchema = new mongoose.Schema({
@@ -142,10 +155,10 @@ const questionsSchema = new mongoose.Schema({
 }, { collation: { locale: 'en_US', strength: 1 } })
 
 
-questionsSchema.index({
-		question: "text",
-		answer:"text"
-});
+//questionsSchema.index({
+		//question: "text",
+		//answer:"text"
+//});
 
 const seenSchema = new mongoose.Schema({
 	updated_date: { type: Number}, 
@@ -186,4 +199,4 @@ const successSchema = new mongoose.Schema({
  })
 
 
-module.exports = {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema,  seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema, classesSchema, usersSchema}
+module.exports = {questionsSchema, topicsSchema, topicCategoriesSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema,  seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema, classesSchema, usersSchema}

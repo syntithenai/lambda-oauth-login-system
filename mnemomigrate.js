@@ -20,6 +20,12 @@ db.questions.updateMany(
 // mnemonics - migrate type from questions ?
 
 
+// topics
+db.topics.update({}, 
+    {$set:{access:'public'}}, 
+    { multi: true, upsert: false}
+)
+
 
 // media
 media
@@ -49,21 +55,20 @@ db.questions.find({
    .limit(2000)
    
 // QUESTIONS   
+
+var bulkData = []
 db.questions.find({}).forEach(function(doc) {
 // merge question fields
-	var data = []
+	var data = {}
 	var parts = []
 	if (doc.pre) parts.push(doc.pre) 
 	if (doc.interrogative) parts.push(doc.interrogative)
 	if (doc.question) parts.push(doc.question)
 	if (doc.post) parts.push(doc.post)
 	data.question_full = parts.join(' ')
-	data.question_subject = doc.question
-	
-	  
-	  
-	  
-	  
+	var start = [doc.pre,doc.interrogative].join('').length
+	var end = start & doc.question.length
+	data.question_subject ={start: start, end: end, value:  doc.question}
 // images
 	if (doc.image) {
 		data.images= [{href: doc.image, attribution: doc.imageattribution, autoplay: doc.autoshow_image}]
@@ -77,16 +82,14 @@ db.questions.find({}).forEach(function(doc) {
 		data.medias=[]
 	}
 	
-	
-	
-	
-	  db.questions.update({_id:doc._id}, 
-		{$set:data}, 
-		{ multi: false, upsert: false}
-	  )  
-
+	bulkData.push({ updateOne :
+      {
+         "filter": {_id:doc._id},
+         "update": {$set:data},     
+       }
+   })
 })
-
+db.collection.bulkWrite(bulkData )
 
 // MCQUESTIONS
 //- option generator_[collection|filter|field]

@@ -1,6 +1,5 @@
 # primary key for this service in serverless ecosystem
 service: loginsystem
-
 useDotenv: true
 
 # organise in serverless dashboard

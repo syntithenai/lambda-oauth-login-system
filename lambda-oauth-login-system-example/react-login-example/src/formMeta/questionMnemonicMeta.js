@@ -1,12 +1,12 @@
 
 //import CheckboxComponent from '../components/CheckboxComponent'
 //import TagsComponent from '../components/TagsComponent'
-import MediaEditorComponent from '../components/MediaEditorComponent'
+import MediaEditorComponent from '../form_field_components/MediaEditorComponent'
 //import RatingsComponent from '../components/RatingsComponent'
 //import DropDownComponent from '../components/DropDownComponent'
-import TextComponent from '../components/TextComponent'
+import TextComponent from '../form_field_components/TextComponent'
 //import TextareaComponent from '../components/TextareaComponent'
-import SelectComponent from '../components/SelectComponent'
+import SelectComponent from '../form_field_components/SelectComponent'
 
 export default function questionMnemonicMeta(props) {
 	return {
@@ -24,7 +24,7 @@ export default function questionMnemonicMeta(props) {
 					label:'',
 					width: 10,
 					component:TextComponent,
-					props:{}
+					props:{editInline: true}
 				},
 				{
 					field:'meme',

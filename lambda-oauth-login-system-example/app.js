@@ -30,7 +30,8 @@ if (process.env.IS_OFFLINE === 'true') {
 
 const {getLoginGatewayUrl,getGatewayUrl} = require('./utils')
 
-mongoose.connect(process.env.databaseConnection, {useNewUrlParser: true}) 
+//mongoose.set('useCreateIndex', true);
+mongoose.connect(process.env.databaseConnection, {useNewUrlParser: true, useCreateIndex: true }) 
 
 mongoose.connection.on('connected', () => {
   process.nextTick(() => {
@@ -133,7 +134,7 @@ function indexTags(tags) {
 
 var template = '' 
 const restifyOptions = require('./restifyOptions')    
-const {questionsSchema, topicsSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema, seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema, classesSchema, usersSchema} = require('./schema')
+const {questionsSchema, topicsSchema, topicCategoriesSchema, tagsSchema, mnemonicsSchema, multipleChoiceQuestionsSchema, commentsSchema, seenSchema, successSchema, userStatsSchema, questionStatsSchema, userQuestionProgressSchema, grabsSchema, classesSchema, usersSchema} = require('./schema')
 var restifyRouter = express.Router();
 const {extractMediaFields, deleteBucket} = require('./extractMediaFields')
 
@@ -158,6 +159,7 @@ const Mnemonics = mongoose.model('mnemonics',mnemonicsSchema )
 const Questions = mongoose.model('questions',questionsSchema )
 const Tags = mongoose.model('tags',tagsSchema )
 const Topics = mongoose.model('topics',topicsSchema )
+const TopicCategories  = mongoose.model('topicCategories',topicCategoriesSchema )
 const MultipleChoiceQuestions = mongoose.model('multipleChoiceQuestions',multipleChoiceQuestionsSchema )
 const Comments = mongoose.model('comments',commentsSchema )
 const Grabs = mongoose.model('grabs',grabsSchema )
@@ -169,12 +171,19 @@ const Users = mongoose.model('users',usersSchema )
 //const UserStats = mongoose.model('userStats',userStatsSchema )
 const UserQuestionProgresses = mongoose.model('userquestionprogresses',userQuestionProgressSchema )
 
+
+Questions.on('index', error => {
+    // "_id index cannot be sparse"
+    if (error) console.log(error);
+  });
+  
 const mongooseModels={
 	questions: Questions,
 	mnemonics: Mnemonics,
 	tags: Tags,
 	topics: Topics,
-	multipleChoiceQuestions: MultipleChoiceQuestions,
+	topiccategories: TopicCategories,
+	multiplechoicequestions: MultipleChoiceQuestions,
 	comments: Comments,
 	grabs: Grabs,
 	classes: Classes,
@@ -225,13 +234,13 @@ questionsSchema.virtual('multipleChoiceQuestions', {
     //localField: 'user',
     //foreignField: '_id',
     //justOne: true,   
+////});
+//commentsSchema.virtual('questionFull', {
+    //ref: 'questions',
+    //localField: 'question',
+    //foreignField: '_id',
+    //justOne: true,   
 //});
-commentsSchema.virtual('questionFull', {
-    ref: 'questions',
-    localField: 'question',
-    foreignField: '_id',
-    justOne: true,   
-});
 multipleChoiceQuestionsSchema.virtual('question', {
     ref: 'questions',
     localField: 'questionId',
@@ -280,19 +289,20 @@ restify.serve(restifyRouter, Questions, restifyOptions({
 },{test:1}))
 
 
-
-restify.serve(restifyRouter, Topics, restifyOptions())
-restify.serve(restifyRouter, Tags, restifyOptions())
-restify.serve(restifyRouter, Mnemonics, restifyOptions())
-restify.serve(restifyRouter, Comments, restifyOptions())
-restify.serve(restifyRouter, MultipleChoiceQuestions, restifyOptions())
-restify.serve(restifyRouter, Grabs, restifyOptions())
+var options = restifyOptions()
+restify.serve(restifyRouter, Topics, options)
+restify.serve(restifyRouter, TopicCategories, options)
+restify.serve(restifyRouter, Tags, options)
+restify.serve(restifyRouter, Mnemonics, options)
+restify.serve(restifyRouter, Comments, options)
+restify.serve(restifyRouter, MultipleChoiceQuestions, options)
+restify.serve(restifyRouter, Grabs, options)
 
 //restify.serve(restifyRouter, Seen, restifyOptions())
 //restify.serve(restifyRouter, Success, restifyOptions())
 //restify.serve(restifyRouter, QuestionStats, restifyOptions())
 //restify.serve(restifyRouter, UserStats, restifyOptions())
-restify.serve(restifyRouter, UserQuestionProgresses, restifyOptions())
+restify.serve(restifyRouter, UserQuestionProgresses, options)
 
 // serve database restfully
 function bulkSave(req,res,next) {
@@ -403,8 +413,9 @@ function bulkSave(req,res,next) {
 							
 						//console.log(JSON.stringify(operations))
 						BulkModel.bulkWrite(operations).then(result => {
-							console.log({inserted: result.insertedCount, modified: result.modifiedCount, deleted: result.deletedCount})
-							res.send({inserted: result.insertedCount, modified: result.modifiedCount, deleted: result.deletedCount, inserted: inserted, updated: updated})
+							var reply = result ? {inserted: result.insertedCount, modified: result.modifiedCount, deleted: result.deletedCount, inserted: inserted, updated: updated} : {}
+							console.log(reply)
+							res.send(reply)
 						});
 					})
 
@@ -420,10 +431,76 @@ function bulkSave(req,res,next) {
 app.use('/handler/rest/bulk/',userFromAuthHeaders, cors(),bulkSave);		
 
 
+function findUpdates(req,res,next) {
+	console.log(['BS',res.locals])
+	
+	//console.log('PREREAD',req.originalUrl,res.locals ? JSON.stringify(res.locals.user) : 'nolloc')
+				//console.log(req && req.erm && req.erm.query)
+	var authParts = []
+	if (res.locals && res.locals.user) {
+		if (!res.locals.user.is_admin) {
+			// add filtering to allow view public and owned
+			authParts = {$or:[{access:'public'},{user:res.locals.user._id}]}
+		}
+	} else {
+		authParts = {access:'public'}
+	}
+	
+	if (res.locals) { // &&  res.locals.user && res.locals.user._id ) {
+		var parts = req.originalUrl ? req.originalUrl.split("/") : []
+		var modelType = parts.length > 0 ? parts[parts.length -1] : null
+		//console.log(['BS user',parts,modelType])
+		if (modelType && req.body && Array.isArray(req.body.ids)) {
+			//console.log('BS bid')
+			//console.log(req.body.ids ? JSON.stringify(req.body.ids.slice(0,10)) : [])
+			const BulkModel = mongooseModels[modelType]
+			var populate = req.body.populate ? req.body.populate : ''
+			var query = {}
+			if (Array.isArray(req.body.ids)) {
+				query = {$or: req.body.ids.map(function(idAndDate) {
+					if (Array.isArray(idAndDate)) {
+						// array of id and updated date pairs
+						if (idAndDate.length > 1) { 	
+							//console.log(['array of ids and date',idAndDate])
+							return {'$and':[{_id:mongoose.Types.ObjectId(idAndDate[0])},{"updated_date":{'$gt':idAndDate[1] > 0 ? parseInt(idAndDate[1]) : 0}}]}
+						// array of arrays with single element id
+						} else {
+							//console.log(['array of arrays',idAndDate])
+							{_id:mongoose.Types.ObjectId(idAndDate[0])}
+						}
+					// array of ids
+					} else {
+						//console.log(['array of ids',idAndDate])
+						return  {_id:mongoose.Types.ObjectId(idAndDate)}
+					}
+				})}
+				if (authParts.length > 0) {
+					query = {$and:[query,authParts]}
+				} 
+				
+				//console.log(JSON.stringify(query))
+				BulkModel.find(query).populate(populate).then(function(results) {
+					//console.log(res)
+					res.send(results)
+					
+				})
+			
+			}
+			//updateCheck.push({'$and':[{_id:localItem._id},{"updated_date":{'$gt':localItem && localItem.updated_date > 0 ? parseInt(localItem.updated_date) : 0}}]})
+			//var queryParts=[
+				//'query='+encodeURIComponent(JSON.stringify({$or: chunk})),
+			//]
+		}
+	}
+}
+			
+app.use('/handler/rest/updates/',userFromAuthHeaders, cors(),findUpdates);		
+
+
 app.use('/handler/rest/',userFromAuthHeaders, cors(),restifyRouter);		
-app.use('/handler/test/',userFromAuthHeaders, cors(),function(req,res,next) {
-	res.send('test' + ((res.locals && res.locals.user) ? JSON.stringify(res.locals.user) : ''))
-});		
+//app.use('/handler/test/',userFromAuthHeaders, cors(),function(req,res,next) {
+	//res.send('test' + ((res.locals && res.locals.user) ? JSON.stringify(res.locals.user) : ''))
+//});		
 // serve HTML
 app.use('/handler/',function (req,res) {
 	if (!template.trim()) {

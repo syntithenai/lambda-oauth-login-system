@@ -1,33 +1,31 @@
 
-import CheckboxComponent from '../components/CheckboxComponent'
-import TagsComponent from '../components/TagsComponent'
-import MediaEditorComponent from '../components/MediaEditorComponent'
-import RatingsComponent from '../components/RatingsComponent'
-import DropDownComponent from '../components/DropDownComponent'
-import TextComponent from '../components/TextComponent'
-import TextareaComponent from '../components/TextareaComponent'
-import SelectComponent from '../components/SelectComponent'
+import CheckboxComponent from '../form_field_components/CheckboxComponent'
+import TagsComponent from '../form_field_components/TagsComponent'
+import MediaEditorComponent from '../form_field_components/MediaEditorComponent'
+import RatingsComponent from '../form_field_components/RatingsComponent'
+import DropDownComponent from '../form_field_components/DropDownComponent'
+import TextComponent from '../form_field_components/TextComponent'
+import TextareaComponent from '../form_field_components/TextareaComponent'
+import SelectComponent from '../form_field_components/SelectComponent'
 import ItemListComponent from '../components/ItemListComponent'
-import LinkComponent from '../components/LinkComponent'
-import HighlightableTextComponent from '../components/HighlightableTextComponent'
+import LinkComponent from '../form_field_components/LinkComponent'
+import HighlightableTextComponent from '../form_field_components/HighlightableTextComponent'
 // eslint-disable-next-line
 import questionMnemonicMeta from './questionMnemonicMeta'
 // eslint-disable-next-line
-import questionCommentMeta from './questionCommentMeta'
+//import questionCommentMeta from './questionCommentMeta'
 // eslint-disable-next-line
 import questionMultipleChoiceMeta from './questionMultipleChoiceMeta'
 import {Button} from 'react-bootstrap'
 import {addLeadingZeros} from '../helpers'
-
-const replyIcon = 
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-reply-fill" viewBox="0 0 16 16">
-  <path d="M5.921 11.9 1.353 8.62a.719.719 0 0 1 0-1.238L5.921 4.1A.716.716 0 0 1 7 4.719V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/>
-</svg>
+//import CommentListComponentRow from '../components/CommentListComponentRow'
+import commentProps from '../props/commentProps'
 
 
 
 
 export default function questionsMeta(props) {
+	//console.log(['qmeta',props.user])
 	return {
 		groups:[
 			
@@ -74,6 +72,13 @@ export default function questionsMeta(props) {
 			]},
 			{key:'g22',title:'', fields:[
 				{
+					field:'tags',
+					label:'',
+					//width: '3',
+					component:TagsComponent  ,
+					props:{float:'right',suggestions: Array.isArray(props.tags) ? props.tags.map(function(tag) { return tag}) : []}
+				}
+				,{
 					field:'difficulty',
 					label:'Difficulty',
 					//width: '3',
@@ -92,12 +97,12 @@ export default function questionsMeta(props) {
 					}
 				},
 				{
-					field:'tags',
-					label:'',
-					//width: '3',
-					component:TagsComponent  ,
-					props:{float:'right',suggestions: Array.isArray(props.tags) ? props.tags.map(function(tag) { return tag}) : []}
+					field:'discoverable',
+					label:'Discoverable',
+					component:CheckboxComponent,
+					props:{hidden_in_view: props.user && props.user.is_admin ? false : true, hidden_in_form: props.user && props.user.is_admin ? false : true}
 				}
+				
 			]},
 			{key:'g2',title:'', fields:[
 				{
@@ -118,7 +123,7 @@ export default function questionsMeta(props) {
 					label:'Images',
 					width: 12,
 					component:MediaEditorComponent,
-					props:{}
+					props:{height:'300px'}
 				}
 			]},
 			{key:'g3',title:'', fields:[
@@ -127,7 +132,7 @@ export default function questionsMeta(props) {
 					label:'Answer',
 					width: 12,
 					component:TextareaComponent,
-					props:{allowFullScreen: true}
+					props:{highlightFirstLine: true, allowFullScreen: true}
 				}
 			]},
 			{key:'g0', title:'', fields:[
@@ -154,7 +159,7 @@ export default function questionsMeta(props) {
 					props:{
 						modelType: 'multiplechoicequestions',
 						fieldMeta: questionMultipleChoiceMeta,
-						parentField: 'question'
+						parentField: 'questionId'
 					}
 				}
 			]},
@@ -167,6 +172,9 @@ export default function questionsMeta(props) {
 					component:LinkComponent,
 					props:{}
 				},
+			]},
+			
+			{key:'gf5',title:'', fields:[
 				{
 					field:'attribution',
 					label:'Attribution',
@@ -186,15 +194,7 @@ export default function questionsMeta(props) {
 					props:{}
 				}
 			]},
-			{key:'g8',title:'', fields:[
-				{
-					field:'discoverable',
-					label:'Discoverable',
-					component:CheckboxComponent,
-					props:{hidden_in_view: true}
-				}
-				
-			]},
+
 			{key:'g9', title:'', fields:[
 				{
 					field:'comments',
@@ -202,37 +202,8 @@ export default function questionsMeta(props) {
 					label:'Comments',
 					width: 12,
 					component:ItemListComponent,
-					props:{
-						modelType: 'comments',
-						sort: 'sort',
-						fieldMeta: questionCommentMeta,
-						parentField: 'question',
-						//autoSaveDelay: '3000',
-						createItem: function(item,index) {
-							 console.log('createIteddm comment')
-							console.log([item,index])
-							// filter allowable values by user
-							//var newValue = (value && props.user && (props.user.is_admin || (props.user.avatar && value.indexOf(props.user.avatar+"'s") === 0))) ? value : '';
-							//console.log([newValue,loginContext.user.avatar])
-							// empty then default notes
-							//if (!newValue && props.user && loginContext.user._id && loginContext.user.avatar) {
-								//newValue =  loginContext.user.avatar+"'s Notes" 
-							//} 
-							return { access:'public', userAvatar : props.user ? props.user.avatar : '', questionTopic: item ? item.quiz : '',  questionText: item.question_full }//, topic: value.quiz 
-						 },
-						itemButtons:[
-						   function(item, callback) { 
-							 //console.log(['BC',item,item ? item.itemkey : 'none',item,item.created_date])
-							 let currentDatetime = new Date()
-							 let createdDate = currentDatetime.getDate() + "-" + addLeadingZeros(currentDatetime.getMonth() + 1) + "-" + addLeadingZeros(currentDatetime.getFullYear()) + " " + addLeadingZeros(currentDatetime.getHours()) + ":" + addLeadingZeros(currentDatetime.getMinutes()) 
-							//+ ":" + addLeadingZeros(currentDatetime.getSeconds())
-							 return <span key={item.itemkey} >
-									<Button key="info" variant="info"  style={{float:'left'}} title={ 'Block'} ><b>{createdDate}</b> &nbsp;{item.userAvatar ? ' by ' + item.userAvatar : ''}</Button> 
-									<Button key="reply" variant="success" style={{float:'left', marginLeft:'0.2em'}} onClick={function(e) {if (item.createNew) item.createNew(Object.assign({},item,{questionTopic: item.questionTopic, questionText: item.questionText, userAvatar: item.userAvatar, question: item.question, parentComment: item._id}), item.itemkey + 1);  else console.log(props) ; }} title={ 'Reply'} >{replyIcon}</Button>
-								</span>
-						    }
-						]
-					}
+					props:commentProps(props)
+					//props:{ modelType:'comments', props: commentProps(props)},
 				}
 			]},
 			

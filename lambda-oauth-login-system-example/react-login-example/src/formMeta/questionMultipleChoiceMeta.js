@@ -1,10 +1,10 @@
 
 //import CheckboxComponent from '../components/CheckboxComponent'
-import TagsComponent from '../components/TagsComponent'
+import TagsComponent from '../form_field_components/TagsComponent'
 //import MediaEditorComponent from '../components/MediaEditorComponent'
 //import RatingsComponent from '../components/RatingsComponent'
 //import DropDownComponent from '../components/DropDownComponent'
-import TextComponent from '../components/TextComponent'
+import TextComponent from '../form_field_components/TextComponent'
 //import TextareaComponent from '../components/TextareaComponent'
 //import SelectComponent from '../components/SelectComponent'
 

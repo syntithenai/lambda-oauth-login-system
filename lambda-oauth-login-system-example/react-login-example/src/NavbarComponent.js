@@ -4,7 +4,11 @@ import {Link, useLocation} from 'react-router-dom'
 import {getAxiosClient} from './helpers'  
 import useLocalForageAndRestEndpoint from './useLocalForageAndRestEndpoint'
 import CountDownTimerComponent from './components/CountDownTimerComponent'
-const grabIcon = <svg  height='1.3em' style={{color:'white'}}  width='2em' focusable="false"  role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="svg-inline--fa fa-hand-rock fa-w-16 fa-2x"><path fill="currentColor" d="M464.8 80c-26.9-.4-48.8 21.2-48.8 48h-8V96.8c0-26.3-20.9-48.3-47.2-48.8-26.9-.4-48.8 21.2-48.8 48v32h-8V80.8c0-26.3-20.9-48.3-47.2-48.8-26.9-.4-48.8 21.2-48.8 48v48h-8V96.8c0-26.3-20.9-48.3-47.2-48.8-26.9-.4-48.8 21.2-48.8 48v136l-8-7.1v-48.1c0-26.3-20.9-48.3-47.2-48.8C21.9 127.6 0 149.2 0 176v66.4c0 27.4 11.7 53.5 32.2 71.8l111.7 99.3c10.2 9.1 16.1 22.2 16.1 35.9v6.7c0 13.3 10.7 24 24 24h240c13.3 0 24-10.7 24-24v-2.9c0-12.8 2.6-25.5 7.5-37.3l49-116.3c5-11.8 7.5-24.5 7.5-37.3V128.8c0-26.3-20.9-48.4-47.2-48.8z" ></path></svg>
+
+import icons from './icons'
+const {grabIcon,lightningIcon} = icons
+
+
 
 export default function NavbarComponent(props) {
 	
@@ -16,13 +20,15 @@ export default function NavbarComponent(props) {
 	
 	
 	useEffect(function() {
+		props.reviewApi.getStreak().then(function(days) {props.setStats(Object.assign({},props.stats,{streak:days}))})
+		
 		window.onmouseup = function(e) {
 			//console.log(['sel',e,'' + document.getSelection()])
 			var selected = '' + document.getSelection()
 			setTextSelected(selected ? true : false)
 			setSelectedText(selected)
 		}
-	})
+	},[])
 	
 	function sendGrab(text) {
 		var params = {
@@ -44,12 +50,26 @@ export default function NavbarComponent(props) {
 	const pathParts = location.pathname.split('/')
 	const path = pathParts.length > 1 ? pathParts[1] : ''
 	const pageTitle = path.length > 0 ? path[0].toUpperCase() + path.slice(1) : ''
-	var filter = localStorage.getItem('questionsCategorySearchFilter')
+	var filter = ''
+	if (pathParts.length > 2 && pathParts[1] === "review") {
+		filter = pathParts[2]
+	} else if (pathParts.length > 2 && pathParts[1] === "discover") {
+		filter = pathParts[2]
+	} if (pathParts.length > 3 && pathParts[1] === "discuss" && pathParts[2] === "topic") {
+		filter = pathParts[3]
+	} if (pathParts.length > 3 && pathParts[1] === "search" && pathParts[2] === "topic") {
+		filter = pathParts[3]
+	}
+	console.log([pathParts,filter]); 
+	//localStorage.getItem('questionsCategorySearchFilter')
 	const pageParam = filter ? '/' + filter : ''
 	//.pathParts.length > 2 ? '/' + pathParts[2] : ''
 //<Link to="/editor" ><Button  variant="primary"  >{'Editor'}</Button></Link>
 	
-	
+	///discuss/topic/:topic
+	///search/topic/:topic
+	///review/:topic
+	///discover/:topic
 	
 	//const [pageTitle, setPageTitle] = useState('')
 						
@@ -66,8 +86,8 @@ export default function NavbarComponent(props) {
 				  </Dropdown.Toggle>
 
 				  <Dropdown.Menu style={{zIndex:9999}} >
-					<Dropdown.Item href={"#/search"}>Search</Dropdown.Item>
-					<Dropdown.Item href={"#/comments"}>Discuss</Dropdown.Item>
+					<Dropdown.Item href={"#/search/topic"+pageParam}>Search</Dropdown.Item>
+					<Dropdown.Item href={"#/discuss/topic"+pageParam}>Discuss</Dropdown.Item>
 					<Dropdown.Item href={"#/discover"+pageParam}>Discover</Dropdown.Item>
 					<Dropdown.Item href={"#/review"+pageParam}>Review</Dropdown.Item>
 					<Dropdown.Item href={"#/feed"+pageParam}>Feed</Dropdown.Item>
@@ -90,7 +110,11 @@ export default function NavbarComponent(props) {
 				{(!props.loginCheckActive && !props.isLoggedIn()) && 
 					<Link to="/login/login" ><Button  style={{float:'right'}}  variant="success"  >{'Login'}</Button></Link>
 				}
+				
+				
 				<span style={{float:'right', marginRight:'1em'}}><CountDownTimerComponent onFinishTimer={props.onFinishTimer} /></span>
+				
+				{(props.stats.streak > 0) && <Button style={{float:'right', marginRight:'1em'}} >{lightningIcon}&nbsp;{props.stats && props.stats.streak}</Button>}
 				
 				{props.user && props.user._id && textSelected && <Button onClick={sendGrab} style={{float:'right', marginRight:'1em'}}  variant="success" >{grabIcon}</Button>}
 				

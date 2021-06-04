@@ -1,5 +1,5 @@
 import React,{useEffect, useState} from 'react'; //, {Fragment, useState}
-import {Button} from 'react-bootstrap'
+import {Button, Modal} from 'react-bootstrap'
 import {Link} from 'react-router-dom'
 import {getAxiosClient, isEditable} from '../helpers'  
 import useLocalForageAndRestEndpoint from '../useLocalForageAndRestEndpoint'
@@ -9,48 +9,283 @@ import ItemForm from './ItemForm'
 //const LOADED = 2;
 //var itemStatusMap = {};
 
-const editIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil" viewBox="0 0 16 16">
-  <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-</svg>
+import icons from '../icons'
+const {deleteIcon, editIcon} = icons
 
+function ItemListComponentRow(props) {
+	return <div className="List-Item" >
+		{(props.item && props.item._id) && 
+			<div style={{borderBottom: '1px solid black',borderTop: '1px solid black',clear:'both', paddingBottom:'1em', backgroundColor: (props.index%2 === 1 ? '#e5e6e7e3' : 'lightgrey')}}  key={props.item._id}><div style={{clear:'both'}} >
+				
+				{props.editable && <Button style={{float:'right'}} variant="danger" onClick={function(e) {if (window.confirm('Really delete ?')) props.doDeleteItem(props.item,props.index)} } >{deleteIcon}</Button>}
+			
+				{(props.editable && props.editUrl) && <Link to={props.editUrl +props.item._id} ><Button style={{float:'right'}} variant="success" >{editIcon}</Button></Link>}
+				
+				{Array.isArray(props.itemButtons) ? <>{props.itemButtons.map(function(button,bkey) {
+	
+					if (typeof button === 'function' ) {
+						var thisButton = button(Object.assign({},props.item,{itemkey: props.index, createNew: props.createNew, createNewFromSibling: props.createNewFromSibling}),function(e) {
+							console.log('click listrow')
+							//clickFunction(e)
+							//that.updateProgress()
+						})
+						return thisButton
+					} else {
+						return button
+					}
+				})}</> : null }	
+			</div>
+			<div style={{clear:'both', width:'100%'}}>
+				<ItemForm editable={isEditable(props.item,props.user)} item={props.item} itemkey={props.index} {...props} />
+			</div>
+		</div>
+		}	
+			
+  </div>
+}
 
-const deleteIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-  <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-</svg>
+const ItemListNewDialog = function(props) {
+	const [newItem, setNewItem] = useState({})
+	const [changed, setChanged] = useState(new Date().getTime())
+	console.log(newItem)
+	// saveField in props to set localItem
+
+	
+	function saveField(field, value, item, key, delay) {
+		return new Promise(function(resolve,reject) {
+			var  uitem = newItem //item ? item : {}
+			if (field) uitem[field] = value
+			setNewItem(uitem)
+			setChanged(new Date().getTime())
+			resolve()
+		})
+	}
+	
+	return <span style={{position:'relative'}}>
+				{<Modal dialogClassName="modal-90w"  
+				  show={true} onHide={function(e) {console.log('FS off'); props.setShowNewItemModal(false)}}  >
+					<Modal.Header closeButton>&nbsp;
+						<Button variant={'success'} onClick={function() {props.createNew(newItem); props.setShowNewItemModal(false)}}>Save</Button>&nbsp;&nbsp;&nbsp;
+						<Button variant={'danger'} onClick={function() {props.setShowNewItemModal(false)}}>Cancel</Button>
+					</Modal.Header>
+				
+					<Modal.Body  >
+					
+					<div style={{clear:'both', width:'100%'}}>
+						<ItemForm editable={true} item={newItem} {...props} saveField={saveField} />
+					</div> 		
+					 </Modal.Body>
+				</Modal>}
+				
+			</span>
+			
+}
+
 export default function ItemListComponent(props) {
 
-//console.log('ITLC')	
-//console.log(props)	
+console.log('ITLC')	
+console.log(props)	
 	
 
 	//var listRef = null;
-	const axiosClient = props.user && props.user.token && props.isLoggedIn() ? getAxiosClient(props.user.token.access_token) : getAxiosClient()
-	const {saveField,saveItemNow, deleteItem} = useLocalForageAndRestEndpoint({user: props.user, modelType:props.modelType,axiosClient:axiosClient,restUrl:props.restUrl ? props.restUrl : '/dev/handler/rest/api/v1/',startWaiting:props.startWaiting,stopWaiting: props.stopWaiting,onItemQueued: props.onItemQueued,onStartSaveQueue: props.onStartSaveQueue,onFinishSaveQueue: props.onFinishSaveQueue, autoSaveDelay: props.autoSaveDelay, populate: props.populate, useCategorySearch: props.useCategorySearch, minimumBatchSize : (props.minimumBatchSize ? props.minimumBatchSize : 50), defaultSort: props.defaultSort, defaultSortLabel: props.defaultSortLabel})
-	
+	//const axiosClient = props.user && props.user.token && props.isLoggedIn() ? getAxiosClient(props.user.token.access_token) : getAxiosClient()
+	const {saveField,saveItemLocal, deleteItemLocal, saveItemNow, deleteItem, setItems, localForages, getItemsFromIndexValues, getIndexValues, items, collatedItems} = useLocalForageAndRestEndpoint(Object.assign({},props,{
+		//axiosClient:axiosClient,
+		//restUrl:props.restUrl ? props.restUrl : '/dev/handler/rest/api/v1/',
+	}))
+	const [listHash,setListHash] = useState(null)
+	function getListHash(items) {
+		return JSON.stringify(items)
+	} 
+	const [showNewItemModal, setShowNewItemModal] = useState(false)
 	
 	//useEffect(function() {
-		//if (Array.isArray(props.value)) {
-			//setItems(props.value)
-		//}	
-	//},[props.value]) 
+		//console.log(['LOGINCHECK',props.loginCheckActive,props.user])
+	//},[props.loginCheckActive])
+	
+	useEffect(function() {
+		// assume that child value is up to date  (from rest virtual field )
+		// item exists in values but not index, create it
+		// item exists in index but not values, delete it
+		
+		const valueHash = getListHash(props.value)
+		console.log(['TRY load from parent result '+props.modelType,props.value]) //, props.value, valueHash, listHash)
+		if (props.value && valueHash != listHash && !props.loginCheckActive) {
+			console.log('TRY load from parent result CHANGED')
+			if (Array.isArray(props.value)) {
+				var saveItems = []
+				var deleteItems = []
+				console.log('load from parent result '+props.modelType)
+				//setSortedList(props.value)
+				setItems(props.value)
+				setListHash(valueHash)
+				console.log(['Itemlist props',props.parentField,props.parent,props.value])
+				// index needs to have same name as parentField
+				console.log(['aa',props.parentField,props.parent._id]) //, value[props.parentField]])
+				getIndexValues(props.parentField,props.parent._id).then(function(indexValues) {
+					
+					var indexValueIds = Array.isArray(indexValues) ? indexValues.map(function(value) { return value ? value._id : null}) : []
+					var ids = {}
+					props.value.forEach(function(value) {
+						if (value && value._id) {
+							ids[value._id] = value
+							if (indexValueIds.indexOf(value._id) === -1) {
+								saveItems.push(value)
+							} 
+						}
+					})
+					const idKeys = Object.keys(ids)
+
+					console.log(indexValues)
+					// add or remove from index as required
+					if (Array.isArray(indexValues)) {
+						indexValues.forEach(function(item) {
+							if (item && item._id) {
+								if (idKeys.indexOf(item._id)  !== -1) {
+									// index item found in value - ok keep it
+								} else {
+									// remove from index
+									deleteItems.push(item)
+								}
+							}
+						})
+					}
+					deleteItems.forEach(function(item) {
+						deleteItemLocal(item)
+					})
+					saveItems.forEach(function(item) {
+						saveItemLocal(item)
+					})
+					
+				})
+			
+				
+				// ensure items exist locally and update
+				//props.value.forEach(function(value) {
+					////if (value && value._id) localForages[props.modelType].localForageItems.setItem(value._id,value)
+				//})
+				// delete any local matches not in value
+				// update items from local search
+			} else {
+				// load from local storage
+				console.log(['load from local storage B',props.modelType, props.user, props.parentField,props.parent._id,props])
+				getItemsFromIndexValues(props.parentField,props.parent._id).then(function(items) {
+					console.log(['loaded from local storage B',props.modelType, props.user, items])
+					setItems(items)
+					//setSortedList(items)
+				})
+			}
+		} else {
+			// load from local storage
+			console.log(['load from local storage A',props.modelType, props.user,props.parentField,props.parent._id,props])
+			getItemsFromIndexValues(props.parentField,props.parent._id).then(function(items) {
+				console.log(['loaded from local storage A',props.modelType, props.user,items])
+				setItems(items)
+				//setSortedList(items)
+			})
+		}
+	},[props.value]) 
 	//console.log(['FM',fieldMeta])		
 	
 	const [sortedList, setSortedList] = useState(null)
 	
-	useEffect(function() {
-		var sorted = Array.isArray(props.value) ? props.value : []
-		sorted.sort(function(a,b) {
-			//console.log(['test',a && b && a.sort < b.sort,a,b])
-			if (a && b && a.sort < b.sort) {
-				return -1
-			} else {
-				return 1
-			}
-		}) 
-		//console.log(['sorted list',sorted])		
-		setSortedList(sorted)
-	},[props.value])	
+	//useEffect(function() {
+		//var sorted = Array.isArray(props.value) ? props.value : []
+		//sorted.sort(function(a,b) {
+			////console.log(['test',a && b && a.sort < b.sort,a,b])
+			//if (a && b && a.sort < b.sort) {
+				//return -1
+			//} else {
+				//return 1
+			//}
+		//}) 
+		////console.log(['sorted list',sorted])		
+		//setSortedList(sorted)
+		//console.log('itemlist val update')
+	//},[props.value])	
+	
+	
+	//function collateItems(items) {
+		//if (Array.isArray(props.value)) {
+			//var newItems = {}
+			//var itemIndex = {}
+			//var children = {}
+			//var parentIds = []
+			//// index by id and collate parentIds
+			//props.value.forEach(function(item,valueKey) {
+				//itemIndex[item._id] = Object.assign({},item,{itemkey: valueKey, sortField: item.updated_date})
+				//if (item && item._id) {
+					//children[item._id] = []
+					//parentIds.push(item._id)
+				//}
+			//})
+			//// iterate values, collating children
+			//props.value.forEach(function(item,valueKey) {
+				//// collate children where parent is in list
+				////console.log(['COLLATED ITEM'])
+				//if (Array.isArray(parentIds) && item && item._id && item.hasOwnProperty(props.collateOn) && item[props.collateOn] &&  Array.isArray(children[item[props.collateOn]]) && parentIds.indexOf(item[props.collateOn]) != -1) {
+					//children[item[props.collateOn]].push(Object.assign({},item,{itemkey: valueKey}))
+					////itemIndex[item._id].sortField = child.updated_date > item.updated_date ? child.updated_date : item.updated_date
+					//delete itemIndex[item._id]
+				//}
+			//})
+			//// assign children back to indexed List
+			//Object.keys(children).forEach(function(key) {
+				//var childs = children[key]
+				//var mostRecent = 0
+				//if (childs && childs.length > 0) {
+					//childs.forEach(function(childItem)  {
+						//if (mostRecent < childItem.updated_date) {
+							//mostRecent = childItem.updated_date
+						//}
+					//})
+					//if (itemIndex[key].updated_date < mostRecent) {
+						//itemIndex[key].sortField = mostRecent
+					//} 
+					//itemIndex[key].children = childs
+				//}
+			//})
+			//// sort
+			//var collatedArray = Object.values(itemIndex)
+			//collatedArray.sort(function(a,b) {
+				//if (a && b && a.sortField < b.sortField) {
+					//return 1
+				//} else {
+					//return -1
+				//}
+				
+			//})
+			////setSortedList(collatedArray)
+			//console.log('COLLATED')
+			//console.log(collatedArray)
+			//return collatedArray
+		//}
+	//}
+	
+	////const [collatedItems,setCollatedItems] = useState([])
+	//useEffect(function() {
+		//if (props.collateOn) { 
+			//if (items && items.length > 0 ) { 	
+				
+				//setSortedList(collateItems(items))
+			//}
+			
+		//} else {
+			//var sorted = Array.isArray(props.value) ? props.value : []
+			//sorted.sort(function(a,b) {
+				////console.log(['test',a && b && a.sort < b.sort,a,b])
+				//if (a && b && a.updated_date < b.updated_date) {
+					//return -1
+				//} else {
+					//return 1
+				//}
+			//}) 
+			////console.log(['sorted list',sorted])		
+			//setSortedList(sorted)
+			////console.log('itemlist val update')
+		//}
+	//},[items])
+	
 	
 	
 	function createNew(item,index) {
@@ -60,98 +295,115 @@ export default function ItemListComponent(props) {
 		if (props.parentField && props.parentValue) {
 			createItem[props.parentField] = props.parentValue
 			//console.log(['save new list item',createItem])
+			createItem['_id'] = null
+			//var minSort = 0
+			//if (Array.isArray(props.value)) {
+				//props.value.forEach(function(theValue) {
+					//if (theValue && theValue.sort && theValue.sort < minSort) {
+						//minSort = theValue.sort
+					//}
+				//})
+			//}
+			//createItem.sort = minSort - 1000
 			
-			var minSort = 0
-			if (Array.isArray(props.value)) {
-				props.value.forEach(function(theValue) {
-					if (theValue && theValue.sort && theValue.sort < minSort) {
-						minSort = theValue.sort
-					}
-				})
-			}
-			createItem.sort = minSort - 1000
-			
-			if (index > 0) {
-				if (Array.isArray(props.value) && props.value.length >= index && props.value[index -1]) {
-					var sort = props.value[index -1].sort ? props.value[index -1].sort : 0
-					createItem.sort = sort + 10
-					console.log(['create new list item index',index,createItem.sort])
-				}
-			} 
+			//if (index > 0) {
+				//if (Array.isArray(props.value) && props.value.length >= index && props.value[index -1]) {
+					//var sort = props.value[index -1].sort ? props.value[index -1].sort : 0
+					//createItem.sort = sort + 10
+					//console.log(['create new list item index',index,createItem.sort])
+				//}
+			//} 
 			
 			saveItemNow(createItem).then(function(newItem) {
 				console.log(['created new list item',newItem])
-				const newItems = Array.isArray(props.value) ? props.value.slice(0) : []
+				const newItems = Array.isArray(items) ? items.slice(0) : []
 				newItems.unshift(newItem)
 				//console.log(['update new list',newItems])
-				props.onChange(newItems) 
+				//props.onChange(newItems) 
+				setItems(newItems)
+				//collateItems()
 			})
 		}
 	}
 	
 	
-	var formProps = Object.assign({},{
+	function createNewFromSibling(item) {
+		console.log(['create new list item from sibling',item])
+		var createItem = props.createItemFromSibling ? props.createItemFromSibling(item,item) : item
+		console.log(['created new list item',createItem])
+		createItem['_id'] = null
+		saveItemNow(createItem).then(function(newItem) {
+			console.log(['created new list item',newItem])
+			const newItems = Array.isArray(items) ? items.slice(0) : []
+			newItems.unshift(newItem)
+			//console.log(['update new list',newItems])
+			//props.onChange(newItems) 
+			setItems(newItems)
+			////collateItems()
+		})
+	}
+	
+	function doDeleteItem (item,key = -1) {
+		deleteItem(item, key).then(function() {
+			//const newItems = Array.isArray(props.value) ? props.value.slice(0) : []
+			//newItems.splice(key,1)
+			//setItems(newItems)
+			//props.onChange(newItems) 
+			//collateItems()
+		})
+	}
+	
+	var formProps = Object.assign({},props,{
 		//isLoggedIn: props.isLoggedIn,
-		//lookups: props.lookups,
-		//setLookups: props.setLookups,
-		//axiosClient: props.axiosClient, 
+		////lookups: props.lookups,
+		////setLookups: props.setLookups,
+		////axiosClient: props.axiosClient, 
 		//user: props.user,
+		
 		saveField: function(field, value, item, key, delay) {
+			console.log(['save field in item list',field, value, item, key, delay])
 			const newItems = Array.isArray(props.value) ? props.value.slice(0) : []
 			if (item && item._id && newItems[key]) {
 				newItems[key] = item
 				newItems[key][field] = value
 			}
-			 //else {
-				//newItems.unshift(newItem)
-			//}
 			//saveQueue()
-			props.onChange(newItems) 
+			//props.onChange(newItems) 
+			//collateItems()
 			//console.log(['save field in item list',field, value, item, key, delay])
-			saveField(field, value, item, key, props.autoSaveDelay).then(function(newItem) { 
+			return saveField(field, value, item, key, delay ? delay : props.autoSaveDelay).then(function(newItem) { 
 				//console.log('saved field in item list')
 				//console.log(newItem)
 			})
 		},
-		autoSaveDelay: props.autoSaveDelay, 
-		startWaiting:props.startWaiting,
-		stopWaiting: props.stopWaiting,
-		onItemQueued: props.onItemQueued,
-		onStartSaveQueue: props.onStartSaveQueue,
-		onFinishSaveQueue: props.onFinishSaveQueue,
-		tags: props.tags,
-		topics: props.topics,
-		reviewApi: props.reviewApi,
-		createNew: createNew
+		createNew: createNew,
+		createNewFromSibling: createNewFromSibling,
+		doDeleteItem: doDeleteItem
 	})
+	//console.log(props)
 	var fieldMeta = props.fieldMeta(formProps)	
 	
-	//console.log(props)
 	formProps.fieldMeta = fieldMeta	
 	//console.log(formProps)
-	function doDeleteItem (id,key = -1) {
-		deleteItem(id, key).then(function() {
-			const newItems = Array.isArray(props.value) ? props.value.slice(0) : []
-			newItems.splice(key,1)
-			props.onChange(newItems) 
-		})
-	}
 	
     const editable = true //isEditable(item,data.user)
 	//return []
 		//const fieldMeta = props.fieldMeta(props)
 		//console.log(fieldMeta)
 	//console.log(['BUTTONS',props])
-		return <div style={{width:'100%'}}>   
+	//console.log([props])
+	//createNew(props.parent ? props.parent : {},0)
+		return showNewItemModal ? <ItemListNewDialog {...formProps} setShowNewItemModal={setShowNewItemModal} /> : <div style={{width:'100%'}}>   
 		    <div style={{ width: '100%'}} >
-				
-				{(editable) && <Button variant="success"  style={{float:'right', marginTop:-40}} onClick={function(e) {console.log('CN'); createNew(props.parent ? props.parent : {},0)}} >+</Button>}
+				{(editable) && <Button variant="success"  style={{float:'right', marginTop:-40}} onClick={function(e) {
+					setShowNewItemModal(true)
+				}} >+</Button>}
 				
 				
 				{Array.isArray(props.buttons) ? <>{props.buttons.map(function(button,bkey) {
 					
 						if (typeof button === 'function' ) {
-							var thisButton = button(Object.assign({},props.value,{itemkey: bkey, createNew: createNew}),function(e) {
+							var thisButton = button(Object.assign({},props.value,{itemkey: bkey, createNew: createNew, createNewFromSibling: createNewFromSibling, setShowNewItemModal: setShowNewItemModal}),function(e) {
 								console.log('click listrow')
 								//clickFunction(e)
 								//that.updateProgress()
@@ -161,39 +413,16 @@ export default function ItemListComponent(props) {
 							return button
 						}
 					})}</> : null }	
-						
 				<div className="List" >
-				{(sortedList && Array.isArray(sortedList)) && sortedList.map(function(item,index) {
+				{(collatedItems && Array.isArray(collatedItems)) && collatedItems.map(function(item,index) {
 					 const editable = props.isEditable ? props.isEditable(item,props.user) : isEditable(item,props.user)
-					 return <div className="List-Item" >
-							{(item && item._id) && 
-								<div style={{borderBottom: '1px solid black',borderTop: '1px solid black',clear:'both', paddingBottom:'1em', backgroundColor: (index%2 === 1 ? '#e5e6e7e3' : 'lightgrey')}}  key={item._id}><div style={{clear:'both'}} >
-									
-									{editable && <Button style={{float:'right'}} variant="danger" onClick={function(e) {if (window.confirm('Really delete ?')) doDeleteItem(item._id,index)} } >{deleteIcon}</Button>}
-								
-									{(editable && props.editUrl) && <Link to={props.editUrl +item._id} ><Button style={{float:'right'}} variant="success" >{editIcon}</Button></Link>}
-									
-									{Array.isArray(props.itemButtons) ? <>{props.itemButtons.map(function(button,bkey) {
-						
-										if (typeof button === 'function' ) {
-											var thisButton = button(Object.assign({},item,{itemkey: index, createNew: createNew}),function(e) {
-												console.log('click listrow')
-												//clickFunction(e)
-												//that.updateProgress()
-											})
-											return thisButton
-										} else {
-											return button
-										}
-									})}</> : null }	
-								</div>
-								<div style={{clear:'both', width:'100%'}}>
-									<ItemForm editable={isEditable(item,props.user)} item={item} itemkey={index} {...formProps} />
-								</div>
-							</div>
-							}	
-								
-					  </div>
+					 const useProps = Object.assign({},formProps, {
+						item: item,
+						index: index,
+						editable: editable
+					 })
+					 const ListItemComponent = props.listItemComponent
+					 return ListItemComponent ? <ListItemComponent {...useProps} /> :  <ItemListComponentRow {...useProps}  />
 					
 				})}
 				</div>
