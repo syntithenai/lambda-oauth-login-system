@@ -6,9 +6,9 @@ export default function TermsOfUse(props) {
 	
 			return  (
 			 <div>
-				<Link to={props.linkBase+ "/register"}><button className='btn btn-success' style={{float:'right', marginLeft:'3em'}} >
+				<Link to={props.linkBase+ "/register"}><button  id="nav_register_button" className='btn btn-success' style={{float:'right', marginLeft:'3em'}} >
 					 Register</button></Link>
-				{props.showCloseButton && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
+				{props.showCloseButton && <button  id="close_button" className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
                          Close</button>}
                         
 			 <div style={{textAlign:'center'}}>

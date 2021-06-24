@@ -91,14 +91,14 @@ export default class Profile extends Component {
                 
                 {this.props.hideButtons !== true &&  
 					<React.Fragment>
-					{window.opener && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
+					{window.opener && <button id="close_button" className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
                  Close</button>}
-                {this.props.isLoggedIn() && <Link to={this.props.linkBase+"/logout"}   >
+                {this.props.isLoggedIn() && <Link  id="nav_logout_button"  to={this.props.linkBase+"/logout"}   >
                 <button className='btn btn-warning' style={{float:'right'}} >
                 Logout</button></Link>}
                 
-                <Link to={this.props.linkBase+'/login'} style={{clear:'both',display:'inline'}} >
-                     <button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</button>
+                <Link id="nav_login_button" to={this.props.linkBase+'/login'} style={{clear:'both',display:'inline'}} >
+                     <button   style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</button>
                 </Link>
                 </React.Fragment>}
                 
@@ -119,7 +119,7 @@ export default class Profile extends Component {
                                 <input id="id" type='hidden' name='_id' value={this.props.user ? this.props.user._id : ''} />
                                 <br/>
                                 <br/>
-                                <button  className='btn btn-lg btn-success btn-block'><SaveButton/> Save</button>
+                                <button  id="save_button" className='btn btn-lg btn-success btn-block'><SaveButton/> Save</button>
                    
                 </div>
                 </form></div>

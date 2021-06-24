@@ -43,7 +43,7 @@ export default  class DoForgot extends Component {
 			return <Redirect to={this.state.redirect} />
 		} else if (this.state.error ) {
 			return <b>
-				{window.opener && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}> Close</button>}     
+				{window.opener && <button id="close_button" className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}> Close</button>}     
 				{this.state.error}
 			</b>
 		} else {

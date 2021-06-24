@@ -143,10 +143,10 @@ export default  class OAuth extends Component {
 			<input type='hidden' name='access_token'  value={this.props.user && this.props.user.token ? this.props.user.token.access_token : ''}/>
 			<div style={{fontSize:'1.1em', clear:'both', width: '100%'}} className='row' >
 				<div className='col-6' >
-				<button type='submit' style={{color: 'black', width:'100%', fontWeight: 'bold'}}  className='btn btn-block btn-lg  btn-success'  ><img src={tickImage} style={{marginRight: '0.2em', height: '1.2em'}} alt="Yes" />&nbsp;Yes</button>
+				<button  id="accept_oauth_button" type='submit' style={{color: 'black', width:'100%', fontWeight: 'bold'}}  className='btn btn-block btn-lg  btn-success'  ><img src={tickImage} style={{marginRight: '0.2em', height: '1.2em'}} alt="Yes" />&nbsp;Yes</button>
 				</div>
 				<div className='col-6' >
-				<button  style={{color: 'black', width:'100%', fontWeight: 'bold'}} className='btn  btn-block btn-lg  btn-danger' onClick={this.cancelAuthRequest} ><img src={crossImage} style={{marginRight: '0.2em', height: '1.2em'}} alt="No"  />&nbsp;No</button>
+				<button  id="deny_oauth_button" style={{color: 'black', width:'100%', fontWeight: 'bold'}} className='btn  btn-block btn-lg  btn-danger' onClick={this.cancelAuthRequest} ><img src={crossImage} style={{marginRight: '0.2em', height: '1.2em'}} alt="No"  />&nbsp;No</button>
 				</div>
 			</div>
 			</form>

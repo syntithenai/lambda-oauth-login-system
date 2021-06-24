@@ -138,21 +138,7 @@ const {questionsSchema, topicsSchema, topicCategoriesSchema, tagsSchema, mnemoni
 var restifyRouter = express.Router();
 const {extractMediaFields, deleteBucket} = require('./extractMediaFields')
 
-//// if there is base64 data, extract and save media to file system then delete base64 data and update url 
-//function deleteMediaFields(fields,item) {
-	//if (Array.isArray(fields)) {
-		//fields.map(function(field) {
-			//if (item && item.hasOwnProperty(field) && typeof item[field] === "object" && item[field].uploadedUrl) {
-				//item[field].autoshow_image = "no"
-				//item[field].uploadedUrl=item[field].base64 = null
-				//console.log(['delete media',item[field].uploadedUrl])
-			//}
-		//})
-	//}
-//}
-
-// extract base64 to filesystem to minimise database size
-// used by preSave and bulkSave
+// extract base64 to filesystem to minimise database size used by preSave and bulkSave
 const mediaFields = {questions: ['image','media']}
 const bucketPrefix = 'mnemo-'
 const Mnemonics = mongoose.model('mnemonics',mnemonicsSchema )
@@ -175,7 +161,7 @@ const UserQuestionProgresses = mongoose.model('userquestionprogresses',userQuest
 Questions.on('index', error => {
     // "_id index cannot be sparse"
     if (error) console.log(error);
-  });
+});
   
 const mongooseModels={
 	questions: Questions,

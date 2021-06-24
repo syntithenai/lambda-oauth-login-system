@@ -115,7 +115,7 @@ export default class Register extends Component {
          
                             
                             <div style={{textAlign:'left'}}>
-                            <b>By registering, you are agreeing to our <Link to={this.props.linkBase + "/privacy"}  style={{clear:'both',display:'inline'}} ><div style={{ marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-warning' >Terms and Conditions</div></Link></b>
+                            <b>By registering, you are agreeing to our <Link to={this.props.linkBase + "/privacy"}  style={{clear:'both',display:'inline'}} ><div  id="privacy_button" style={{ marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-warning' >Terms and Conditions</div></Link></b>
                             <br/>
                               
                             </div>
@@ -129,7 +129,7 @@ export default class Register extends Component {
                                 <label htmlFor="password2" className='row'>Repeat Password</label><input className='form-control'  autoComplete="false"  id="password2" type='password' name='password2' value={this.state.password2} onChange={this.change} />
                             
                              <br/>
-                            <button  className='btn btn-lg btn-success btn-block'>Register</button>
+                            <button id="register_button" className='btn btn-lg btn-success btn-block'>Register</button>
                     </form>
                 </div>
               }

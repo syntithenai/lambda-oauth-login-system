@@ -103,18 +103,18 @@ function scrollToTop() {
     document.documentElement.scrollTop = 0;
 }
 
-    function getParentPath(history) {
-       var pathParts = history.location.pathname.split("/")
-       var parentPath = ''
-       if (pathParts[0] && pathParts[0].trim()) {
-            parentPath = "/"+pathParts.slice(0,pathParts.length-1).join("/")
-        } else {
-            // skip leading slash
-            parentPath = "/"+pathParts.slice(1,pathParts.length-1).join("/")
-        }
-        //console.log(['PP',parentPath])
-        return parentPath
-    } 
+function getParentPath(history) {
+   var pathParts = history.location.pathname.split("/")
+   var parentPath = ''
+   if (pathParts[0] && pathParts[0].trim()) {
+		parentPath = "/"+pathParts.slice(0,pathParts.length-1).join("/")
+	} else {
+		// skip leading slash
+		parentPath = "/"+pathParts.slice(1,pathParts.length-1).join("/")
+	}
+	//console.log(['PP',parentPath])
+	return parentPath
+} 
 
 function getAxiosClient(accessToken)	{
 	//console.log(['get axios client ',accessToken])
@@ -135,56 +135,56 @@ function getAxiosClient(accessToken)	{
 	return axios.create(axiosOptions);
 }
 
-    function uniquifyArray(a) {
-        ////console.log(['UNIQARRAY',a])
-        if (Array.isArray(a)) {
-            var index = {}
-            a.map(function(value) {
-                index[value] = true 
-                return null
-            })
-            return Object.keys(index)
-        } else {
-            return []
-        }
-    }
-    
-    function generateObjectId() {
-		var timestamp = (new Date().getTime() / 1000 | 0).toString(16);
-		return timestamp + 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function() {
-			return (Math.random() * 16 | 0).toString(16);
-		}).toLowerCase();
+function uniquifyArray(a) {
+	////console.log(['UNIQARRAY',a])
+	if (Array.isArray(a)) {
+		var index = {}
+		a.map(function(value) {
+			index[value] = true 
+			return null
+		})
+		return Object.keys(index)
+	} else {
+		return []
 	}
-	  
-	function YouTubeGetID(url){
-		url = url.split(/(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/);
-		// eslint-disable-next-line
-		return undefined !== url[2]?url[2].split(/[^0-9a-z_\-]/i)[0]:url[0];
+}
+
+function generateObjectId() {
+	var timestamp = (new Date().getTime() / 1000 | 0).toString(16);
+	return timestamp + 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function() {
+		return (Math.random() * 16 | 0).toString(16);
+	}).toLowerCase();
+}
+  
+function YouTubeGetID(url){
+	url = url.split(/(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/);
+	// eslint-disable-next-line
+	return undefined !== url[2]?url[2].split(/[^0-9a-z_\-]/i)[0]:url[0];
+}
+
+function decodeFromBase64(base64DataString) {
+	const parts = base64DataString.split(';base64,')
+	if (parts.length > 1) {
+		const buffer = Buffer.from(parts[1], 'base64');
+		return buffer
 	}
-	
-	function decodeFromBase64(base64DataString) {
-		const parts = base64DataString.split(';base64,')
-		if (parts.length > 1) {
-			const buffer = Buffer.from(parts[1], 'base64');
-			return buffer
-		}
-	};
-	function getRandomString(length) {
-		var randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		var result = '';
-		for ( var i = 0; i < length; i++ ) {
-			result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
-		}
-		return result;
+};
+function getRandomString(length) {
+	var randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	var result = '';
+	for ( var i = 0; i < length; i++ ) {
+		result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
 	}
-	
-	function addLeadingZeros(n) {
-	  if (n <= 9) {
-		return "0" + n;
-	  }
-	  return n
-	}
-	
+	return result;
+}
+
+function addLeadingZeros(n) {
+  if (n <= 9) {
+	return "0" + n;
+  }
+  return n
+}
+
 		//function chunkArray (arr, len) {
 
 	  //var chunks = [],

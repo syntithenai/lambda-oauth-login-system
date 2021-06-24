@@ -15,7 +15,7 @@ var template = ''
 
  
 module.exports.login =  async (event, context) => {
-	const login = loginSystem(config)
+	const login = await loginSystem(config)
 	const loginRouter = login.router
 	const authenticate = login.authenticate
 	app.use(config.lambdaUrl + '/api/',loginRouter)

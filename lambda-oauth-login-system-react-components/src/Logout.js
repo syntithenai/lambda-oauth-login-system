@@ -24,7 +24,7 @@ export default  class Logout extends Component {
     render() {
 		if (this.props.isLoggedIn()) {
 			return <div style={{width:'100%', textAlign:'center', paddingTop:'1em'}} >
-			 {window.opener && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
+			 {window.opener && <button id="close_button" className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
 							 Close</button>}
 			
 			<b>Logging Out ....</b><br/></div>

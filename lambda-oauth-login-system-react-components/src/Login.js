@@ -107,11 +107,11 @@ export default  class Login extends Component {
 		if (this.state.redirect) {
 			return <Redirect to={this.state.redirect} />
 		} else {
-		    let loginButtons = that.props.buttons.map(function(key) {
+		    let loginButtons = that.props.buttons.map(function(key,buttonNum) {
 				let link = that.props.loginServer + '/api/'+ key;
 				let title = key.slice(0,1).toUpperCase() + key.slice(1);
 				let image = brandImages[key]
-				return <span key={key} >&nbsp;<a className='btn btn-primary' onClick={function(e) {that.startOauthFlow(link)}}  >
+				return <span key={key} >&nbsp;<a id={"oauth_signin_button_"+buttonNum} className='btn btn-primary' onClick={function(e) {that.startOauthFlow(link)}}  >
 				{key === "amazon" && <AmazonLogo style={{marginRight: '0.6em', height: '2em', color:'black'}}/> }
 				{key === "google" && <GoogleLogo style={{marginRight: '0.6em', height: '2em', color:'black'}}/> }
 				{key === "github" && <GithubLogo style={{marginRight: '0.6em', height: '2em', color:'black'}}/> }
@@ -122,18 +122,18 @@ export default  class Login extends Component {
 			 });
 			   return <div> 
 		   
-			   {window.opener && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
+			   {window.opener && <button id="close_button" className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
 					 Close</button>}
 							
-			 {(this.props.isLoggedIn() && !this.props.hideButtons) && <Link to={this.props.linkBase + '/profile'} style={{clear:'both',display:'inline'}} >
-				 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Profile</div>
+			 {(this.props.isLoggedIn() && !this.props.hideButtons) && <Link id="nav_profile_button" to={this.props.linkBase + '/profile'} style={{clear:'both',display:'inline'}} >
+				 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary'  >Profile</div>
 			</Link>}
 			 
-			 <Link to={this.props.linkBase + '/forgot'} style={{clear:'both',display:'inline'}} >
+			 <Link id="nav_forgot_button" to={this.props.linkBase + '/forgot'} style={{clear:'both',display:'inline'}} >
 			 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</div>
 			 </Link>
 			 
-			 <Link to={this.props.linkBase + '/register'} style={{clear:'both',display:'inline'}} >
+			 <Link  id="nav_register_button"to={this.props.linkBase + '/register'} style={{clear:'both',display:'inline'}} >
 			 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div>
 			 </Link>
 			  
@@ -151,7 +151,7 @@ export default  class Login extends Component {
 			  <label htmlFor="inputPassword" className="sr-only">Password</label>
 			  <input type="password" name="signin_password" id="inputPassword" className="form-control" placeholder="Password" required  onChange={this.change} value={this.state.signin_password} autoComplete="signin_password" />
 
-			  <button className="btn btn-lg btn-success btn-block" type="submit">Sign In</button>  
+			  <button id="signin_button" className="btn btn-lg btn-success btn-block" type="submit">Sign In</button>  
 					   
 			</form>
 		   </div>
