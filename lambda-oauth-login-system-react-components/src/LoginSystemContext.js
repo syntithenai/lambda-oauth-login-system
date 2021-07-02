@@ -13,7 +13,7 @@ export default  class LoginSystemContext extends Component {
             user: null,
             userInitialised: false, 
             // from props or env vars
-            allowedOrigins: props.allowedOrigins && props.allowedOrigins.split(",").length > 0  ? props.allowedOrigins : (window.allowedOrigins && window.allowedOrigins.split(",").length > 0 ? window.allowedOrigins.split(",") : [])
+            allowedOrigins: props.allowedOrigins ? props.allowedOrigins : ''
         }
         this.setUser = this.setUser.bind(this)
         this.useRefreshToken = this.useRefreshToken.bind(this)
@@ -29,15 +29,22 @@ export default  class LoginSystemContext extends Component {
      
     componentDidMount(props) {
         let that=this;
+        //console.log(["CONTEXT MOUNT",props])
         // refresh login using server cookies
         var refreshToken = null
         if (window.location.search && window.location.search.indexOf('?refresh_token') !== -1) {
 			refreshToken = window.location.search.slice(15)
 		}
+		//console.log('userefersh')
 		this.useRefreshToken(refreshToken).then(function(userAndToken) { 
-			that.setUser(userAndToken)
+			if (userAndToken.user) {
+				//console.log(["finished use refresh token SET USER",userAndToken])
+				that.setUser(userAndToken)
+			}
 			//console.log(["finished use refresh token",userAndToken])
 			// don't process messages until we've tried restoring login from session
+		}).finally(function() {
+			//console.log('userefersh finally')
 			that.setState({userInitialised: true})
 		})
 	
@@ -49,29 +56,32 @@ export default  class LoginSystemContext extends Component {
         var loginActive = false
         var confirmActive = false
         var forgotActive = false
-        
+         
         
         function receiveMessage(event) {
-			//console.log(['master event',JSON.stringify(event.data)])
+			//console.log(['smadster event',JSON.stringify(event.data),that.state.allowedOrigins,event.origin])
 		     // only handle messages if allowedOrigins is set and message comes from an allowedOrigin  
              if (that.state.allowedOrigins && that.state.allowedOrigins.indexOf(event.origin) !== -1) {  
+				//console.log(['madster event allow',that.state])
 				// poll login status
                 if (event.data && event.data.check_login && that.state.userInitialised) {
-                	//if (!checkActive && userInitialised) {
-						//checkActive = true
-						//that.useRefreshToken().then(function (user) {
-							//that.setUser(user)
-							//console.log('send user after check')
-							//console.log({user:that.state.user})
+					//console.log(['madster event check login'])
+                	if (!checkActive) {
+						checkActive = true
+						that.useRefreshToken().then(function (user) {
+							that.setUser(user)
+							console.log('send user after check')
+							console.log({user:that.state.user})
 							event.source.postMessage({check_login_ok: true, user:that.state.user},event.origin)
-							//checkActive = false
+							checkActive = false
 							//if (user && user.username) 
 							window.close()
-						//})
-					//}
+						})
+					}
                     
                 }
                 if (event.data && event.data.confirm_login && that.state.userInitialised) {
+				    //console.log(['madster event confirm login'])
 				    //if (!confirmLoginActive) {
 						//confirmLoginActive = true
 						//that.useRefreshToken().then(function (user) {
@@ -83,9 +93,12 @@ export default  class LoginSystemContext extends Component {
 				}
                 
                 if (event.data && event.data.refresh_login && that.state.userInitialised) {
+					//console.log(['madster event refresh login'])
 					if (!refreshActive) { 
+						//console.log(['madster event refresh login not active'])
 						refreshActive = true
 						that.useRefreshToken().then(function (user) {
+							//console.log(['madster event got refresh token'])
 							that.setUser(user)
 							event.source.postMessage({user:user},event.origin)
 							refreshActive = false
@@ -102,6 +115,7 @@ export default  class LoginSystemContext extends Component {
                 //}
                 // logout message
                 if (event.data && event.data.logout) {
+					//console.log(['madster event logout'])
                     // send null unless token AND user are loaded
                     if (that.isLoggedIn()) that.logout(that.state.user.access_token)
                     event.source.postMessage({user: null},event.origin)
@@ -109,10 +123,12 @@ export default  class LoginSystemContext extends Component {
                 
                 // login message
                 if (event.data && event.data.login && event.data.username && event.data.password && that.state.userInitialised) {
-					//console.log(['master event login',event.data])
+					//console.log(['master event login userpass',event.data])
 				    if (!loginActive) {
+						console.log(['madster event userpass not active'])
 						loginActive = true
                 		that.signIn(event.data.username,event.data.password).then(function(result) {
+							console.log(['madster event signed in',result])
 							if (result) {
 								if (result.error) {
 									event.source.postMessage({login_fail: result.error},event.origin)
