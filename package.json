@@ -1,0 +1,19 @@
+{
+  "name": "lambda-oauth-login-system",
+  "version": "1.0.0",
+  "description": "This repository provides a web based login system that can be deployed to AWS Lambda.",
+  "main": " ",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/syntithenai/lambda-oauth-login-system.git"
+  },
+  "author": "steve ryan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/syntithenai/lambda-oauth-login-system/issues"
+  },
+  "homepage": "https://github.com/syntithenai/lambda-oauth-login-system#readme"
+}
