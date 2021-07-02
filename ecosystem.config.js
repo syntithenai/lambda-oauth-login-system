@@ -11,8 +11,23 @@ module.exports = {
     cwd: './lambda-oauth-login-system-react-components',
     script: 'npm start',
   }
+  // silent error ?? - for now manual rebuild login example
+  // cd ./lambda-oauth-login-system-example/react-login-example; npm run-script build
   , 
   {
+    name: 'dev_client',
+    cwd: './client',
+    script: 'npm run-script build && while true; do sleep 100;  done',
+    watch: './src'
+  }
+  , 
+  {
+    name: 'dev_exampleUI',
+    cwd: './lambda-oauth-login-system-example/react-login-example',
+    script: 'npm run-script build && while true; do sleep 100;  done',
+    watch: './src'
+  }
+  ,{
     name: 'loginapi',
     cwd: './api',
     script: 'index.js',

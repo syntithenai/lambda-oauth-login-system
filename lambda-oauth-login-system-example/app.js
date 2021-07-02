@@ -494,7 +494,7 @@ app.use('/handler/',function (req,res) {
 		loginLambdaUrl = loginLambdaUrl && loginLambdaUrl.trim() ? loginLambdaUrl+ "/login" : ''
 		var lambdaUrl = getGatewayUrl() + "/handler"
 		lambdaUrl = lambdaUrl && lambdaUrl.trim() ? lambdaUrl+ "/handler" : ''
-		template = String(fs.readFileSync(path.join(__dirname,'./react-login-example/build', 'index.html')))
+		template = String(fs.readFileSync(path.join(__dirname,'./react-login-example/buildfinal', 'index.html')))
 		var pre = template.slice(0,400).replace('###MARKER_apiServer###',lambdaUrl).replace('###MARKER_loginServer###',loginLambdaUrl)
 		template = pre + template.slice(400)		
 	}

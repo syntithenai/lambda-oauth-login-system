@@ -15,7 +15,7 @@ export default class ExternalLogin   extends Component {
 			 user:null, 
 			 checkLoginIframe: null,
 			 redirect: null, 
-			 useWindow: ((!localStorage) || (localStorage && localStorage.getItem && localStorage.getItem('useWindowForLoginPolling') === 'true') ? true : false)
+			 useWindow:((!localStorage) || (localStorage && localStorage.getItem && localStorage.getItem('useWindowForLoginPolling') === 'true') ? true : false)
 		}
         this.pollLoginTimeout = null
         this.pollAuthSuccessTimeout = null
@@ -48,22 +48,27 @@ export default class ExternalLogin   extends Component {
         this.pollConfirmSuccess = this.pollConfirmSuccess.bind(this)
         this.startPollConfirmSuccess = this.startPollConfirmSuccess.bind(this)
     }
-    
+     
     
     componentDidMount(props) {
         var that = this
+        //localStorage.setItem('useWindowForLoginPolling','true')
         window.addEventListener("message", this.receiveMessage, false); 
         // don't try auto login when using forgot or confirm registration
-         if (window.location.search.indexOf('code=') === -1) {
-			that.createLoginIframe()
+        if (window.location.search.indexOf('code=') === -1) {
+			setTimeout(function() {
+				that.createLoginIframe()
+			}, 1000)
 		}
-		this.setState({'loginCheckActive':true})
-     }
+		//this.setState({'loginCheckActive':true})
+	 }
     
-     receiveMessage(event) {
-		 //console.log(['ExternalLogin MESSAGE',event.data])
+     async receiveMessage(event) {
+		
 		let that = this
         var origin = new URL(this.props.loginServer).origin
+			//console.log(['3ExternalLogin MESSAGE',event.data,event.origin,origin,event])
+		//return true 
 		if (event.origin === origin) {
 			// if login failed in frame then use window for login polling
 			if (event.data && event.data.hasOwnProperty('confirm_login_ok')) {
@@ -122,13 +127,16 @@ export default class ExternalLogin   extends Component {
 			// ?? TODO remove
 			 else if (event.data.check_login_ok && event.data.hasOwnProperty('user')) {
 				that.isBusy = false
-				 //console.log('UPDATE USER')
-				 //console.log(event.data)
-				if (event.data && event.data.user) this.setUser(event.data.user)
+				 console.log('UPDATE USER')
+				 console.log(event.data)
+				//if (event.data && event.data.user) 
+				that.setUser(event.data.user)
 				that.setState({'loginCheckActive':false})
 				if (this.pollLoginTimeout) clearTimeout(this.pollLoginTimeout)	
 			}
 		}
+		//return true
+		//return new Promise(function(resolve) {resolve()})
      }
      
      submitWarning(warning) {
@@ -142,6 +150,7 @@ export default class ExternalLogin   extends Component {
     
     
     setUser(user) {
+		console.log(['SETUSER',user])
 	    this.setState({user:user})
     }
     
@@ -314,6 +323,7 @@ export default class ExternalLogin   extends Component {
 					that.checkIsLoggedIn(popup, count+1)
 				}
 			},2000)
+			
 			this.setState({'loginCheckActive':true})
 		//}
     }
@@ -323,12 +333,18 @@ export default class ExternalLogin   extends Component {
 		var refreshToken = this.isLoggedIn() ? '?refresh_token='+this.state.user.token.refresh_token  : ''
 		var url = this.props.loginServer + refreshToken + "#blank"
 		if (this.loginPopup) this.loginPopup.close() 
-		this.loginPopup = window.open(url,'mywin','resizable=no, scrollbars=no, status=no, width=10,height=10, top: 0, left:'+window.screen.availHeight+10);
+		this.loginPopup = null
+		try {
+			this.loginPopup = window.open(url,'mywin','resizable=no, scrollbars=no, status=no, width=10,height=10, top: 0, left:'+window.screen.availHeight+10);
+		} catch (e) {
+			console.log(e)
+		}
+		//console.log(['loginwindow',refreshToken,url,this.loginPopup])
 		that.checkIsLoggedIn(this.loginPopup)
 		this.setState({'loginCheckActive':true})
 		// timeout close
 		setTimeout(function() {
-			that.loginPopup.close()
+			if (that.loginPopup) that.loginPopup.close()
 			that.loginPopup = null
 			if (false) that.setState({'loginCheckActive':false})
 			// auto refresh token
@@ -352,6 +368,7 @@ export default class ExternalLogin   extends Component {
 		var refreshToken = this.isLoggedIn() ? '?refresh_token='+this.state.user.token.refresh_token : ''
 		var url = this.props.loginServer + refreshToken + "#blank"
 		var i = document.createElement('iframe')
+		//console.log(['loginframe',refreshToken,url,i])
 		this.myFrame = i  
 		i.style.display = 'none'
 		i.src = url

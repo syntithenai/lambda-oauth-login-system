@@ -9,7 +9,7 @@ export default function NavbarComponent(props) {
       <div style={{width:'100%'}}>   
             <React.Fragment>
 				
-				{props.loginCheckActive && <span><Link to="/login/login" ><Button style={{float:'right'}} variant="warning" id="nav_checking_button" >{'Checking Login'}</Button></Link></span>}
+				{props.loginCheckActive && <span><Link to="/login/login" ><Button style={{float:'right'}} variant="warning" id="nav_login_button" >{'Checking Login'}</Button></Link></span>}
 				
 				{(!props.loginCheckActive && props.isLoggedIn()) && 
 					<span>

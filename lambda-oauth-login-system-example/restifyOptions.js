@@ -12,7 +12,7 @@ function getOptions(config,overrides) {
 			  })
 			}, 
 			preRead: (req, res, next) => {
-				console.log('PREREAD',req.originalUrl,res.locals ? JSON.stringify(res.locals.user) : 'nolloc')
+				//console.log('PREREAD',req.originalUrl,res.locals ? JSON.stringify(res.locals.user) : 'nolloc')
 				//console.log(req && req.erm && req.erm.query)
 				if (res.locals && res.locals.user) {
 					if (res.locals.user.is_admin) {

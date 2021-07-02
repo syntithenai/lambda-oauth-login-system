@@ -7,6 +7,7 @@
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.8.3",
+    "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "diff-json": "^2.0.0",
     "file-saver": "^2.0.5",
@@ -18,7 +19,9 @@
     "jquery": "^3.6.0",
     "lambda-oauth-login-system-react-components": "file:../../lambda-oauth-login-system-react-components",
     "localforage": "^1.9.0",
+    "md5": "^2.3.0",
     "npm": "^7.8.0",
+    "npm-watch": "^0.10.0",
     "popper.js": "^1.16.1",
     "react": "^17.0.1",
     "react-bootstrap": "^1.5.1",
@@ -42,7 +45,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build && npx gulp",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "watch": "npm-watch"
   },
   "eslintConfig": {
     "extends": [
@@ -63,6 +67,14 @@
     ]
   },
   "jest": {
-     "testEnvironment": "node"
-   }
+    "testEnvironment": "node"
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "js,jsx"
+    }
+  }
 }

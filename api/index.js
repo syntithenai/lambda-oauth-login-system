@@ -21,12 +21,13 @@ var template = ''
 loginSystem(config).then(function(login) {
 	const loginRouter = login.router
 	const authenticate = login.authenticate
-	app.use('/dev/login/api/',	cors(), loginRouter)
-	app.use('/dev/login/',cors(), function (req,res) {
+	app.use('/dev/login/api/', cors(),loginRouter)
+	app.use('/dev/login', cors(),function (req,res) {
 		if (!template.trim()) {
+			// serve compressed build file that uses LoginSystemContext
 			template = String(fs.readFileSync(path.join(__dirname,'./build', 'index.html')))
-			var pre = template.slice(0,400).replace('###MARKER_loginServer###',config.loginServer).replace('###MARKER_allowedOrigins###',config.allowedOrigins)
-			template = pre + template.slice(400)		
+			console.log(config)
+			template = template.replace(/###MARKER_loginServer###/g,config.loginServer).replace(/###MARKER_allowedOrigins###/g,config.allowedOrigins)
 		}
 		res.send( template);
 	});

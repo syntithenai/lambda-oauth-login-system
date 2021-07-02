@@ -29,7 +29,7 @@ provider:
   environment:
     #: ${self:custom.secrets.MONGODB}
     NODE_TLS_REJECT_UNAUTHORIZED: 0
-    LAMBDA_REST_GATEWAY_OFFLINE: https://localhost:5000/dev   # see custom.serverless-offline config
+    #LAMBDA_REST_GATEWAY_OFFLINE: https://localhost:5000/dev   # see custom.serverless-offline config
     LAMBDA_REST_GATEWAY:
       Fn::Join:
         - ""
