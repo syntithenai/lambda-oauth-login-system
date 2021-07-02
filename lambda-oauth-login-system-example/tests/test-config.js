@@ -1,6 +1,8 @@
-function getGatewayUrl() {
-	return 'http://localhost:5100'
-}
+//function getGatewayUrl() {
+	//return 'https://localhost:5100/dev'
+//}
+require('dotenv').config()
+//console.log(process.env)
 
 module.exports = {
    sessionSalt:'this is a new session salt value',
@@ -20,25 +22,25 @@ module.exports = {
 
    // ensure that your mongo database has a user with read/write access defined in the database that you want to use. DO NOT USE ROOT DB CREDENTIALS
    databaseConnection: '',
-   allowedOrigins: 'https://localhost:5000,http://localhost:5100,http://localhost:3000,http://stever-gt62vr-6rd.local:3000',
+  // allowedOrigins: 'https://localhost:5100,https://localhost:5000,https://localhost:5101,https://localhost:5001',
    lambdaUrl:"/login",
-   authServer: getGatewayUrl()+'/login/api',
-   loginServer: getGatewayUrl()+'/login',
+   //authServer: getGatewayUrl()+'/login/api',
+   //loginServer: getGatewayUrl()+'/login',
 
   // oauth login redirect
-   loginSuccessRedirect: getGatewayUrl()+'/login#/success',
-   loginFailRedirect: getGatewayUrl()+'/login',
+   //loginSuccessRedirect: getGatewayUrl()+'/login#/success',
+   //loginFailRedirect: getGatewayUrl()+'/login',
    // LOGIN CLIENT KEYS AND SECRETS
-   //googleClientId: process.env.googleClientId,
-   //googleClientSecret: process.env.googleClientSecret,
-   //twitterConsumerKey:process.env.twitterConsumerKey,
-   //twitterConsumerSecret:process.env.twitterConsumerSecret,
-   //facebookAppId: process.env.facebookAppId,
-   //facebookAppSecret: process.env.facebookAppSecret,
-   //githubClientId: process.env.githubClientId,
-   //githubClientSecret: process.env.githubClientSecret,
-   //amazonClientId: process.env.amazonClientId,
-   //amazonClientSecret: process.env.amazonClientSecret,
+   googleClientId: process.env.googleClientId,
+   googleClientSecret: process.env.googleClientSecret,
+   twitterConsumerKey:process.env.twitterConsumerKey,
+   twitterConsumerSecret:process.env.twitterConsumerSecret,
+   facebookAppId: process.env.facebookAppId,
+   facebookAppSecret: process.env.facebookAppSecret,
+   githubClientId: process.env.githubClientId,
+   githubClientSecret: process.env.githubClientSecret,
+   amazonClientId: process.env.amazonClientId,
+   amazonClientSecret: process.env.amazonClientSecret,
 
    
    // local oauth server
@@ -50,16 +52,7 @@ module.exports = {
    clientPrivacyPage:'http://localhost',
    clientImage:'',
    
-   googleClientId: 'aaa',
-   googleClientSecret: 'aaa',
-   twitterConsumerKey:'aaa',
-   twitterConsumerSecret:'aaa',
-   facebookAppId: 'aaa',
-   facebookAppSecret: 'aaa',
-   githubClientId: 'aaa',
-   githubClientSecret: 'aaa',
-   amazonClientId: 'aaa',
-   amazonClientSecret: 'aaa',
+ 
 
 
 

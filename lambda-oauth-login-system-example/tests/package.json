@@ -14,7 +14,8 @@
   "jest": {
     "verbose": true,
     "extraGlobals": [
-      "Math"
+      "Math",
+      "window"
     ],
     "setupFilesAfterEnv": [
       "./lib/fix-return-warning.js"
@@ -28,6 +29,7 @@
     "cors": "^2.8.5",
     "cross-env": "^5.2.0",
     "faker": "^4.1.0",
+    "fs-extra": "^10.0.0",
     "jest": "^24.9.0",
     "jest-allure": "^0.1.1",
     "jsonpath": "^1.0.2",

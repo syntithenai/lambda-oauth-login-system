@@ -7,8 +7,11 @@
   "puppeteer.launch": {
     "devtools": true,
     "headless": false,
-    "args": [],
+    "args": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage"
+    ],
     "slowMo": 30,
-    "ignoreHTTPSErrors": false
+    "ignoreHTTPSErrors": true
   }
 }

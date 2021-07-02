@@ -10,6 +10,7 @@ const path = require('path')
 const cors = require('cors')
 const axiosLib = require('axios');
 const fs = require('fs');
+const fse = require('fs-extra');
 const http = require('http');
 const loginSystem = require('express-oauth-login-system-server')
 const express = require('express');
@@ -22,10 +23,9 @@ var app = null
 
 var server = null
 var template = ''
-const ORIGIN = 'http://localhost:5100'
-const baseUrl = ORIGIN
-
-
+var port = 5100
+const ORIGIN = 'http://localhost:' + port
+const baseUrl = ORIGIN + "/dev/login"
 
 var nVer = process.version.match( /^v(\d+)/ );
 if ( !nVer || nVer[ 1 ] < 9 ) {
@@ -52,12 +52,13 @@ bs.TARGETS = {};
 
 // Environment variables
 let ENV = {
-  "BASE_URL": "http://localhost:3000/dev/login",
+  "BASE_URL": baseUrl,
 };
 
 bs.TARGETS[ "BUTTON_CLASS_BTN_BTN_SUCCESS" ] = async () => await bs.query( "/html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/a[1]/button[1]", false, "BUTTON_CLASS_BTN_BTN_SUCCESS" );
 bs.TARGETS[ "INPUT_ID_NAME" ] = async () => await bs.query( "#name", true, "INPUT_ID_NAME" );
 bs.TARGETS[ "INPUT_ID_EMAIL" ] = async () => await bs.query( "#email", true, "INPUT_ID_EMAIL" );
+bs.TARGETS[ "INPUT_ID_INPUTEMAIL" ] = async () => await bs.query( "#email", true, "INPUT_ID_INPUTEMAIL" );
 bs.TARGETS[ "INPUT_ID_PASSWORD" ] = async () => await bs.query( "#password", true, "INPUT_ID_PASSWORD" );
 bs.TARGETS[ "INPUT_ID_PASSWORD2" ] = async () => await bs.query( "#password2", true, "INPUT_ID_PASSWORD2" );
 bs.TARGETS[ "BUTTON_CLASS_BTN_BTN_LG_BTN_SUCCESS_BTN_BLOCK" ] = async () => await bs.query( "/html[1]/body[1]/div[1]/div[1]/div[2]/div[1]/div[1]/form[1]/button[1]", false, "BUTTON_CLASS_BTN_BTN_LG_BTN_SUCCESS_BTN_BLOCK" );
@@ -92,7 +93,7 @@ describe( "forgot password", () => {
   beforeAll(async () => {
     // server
 	var uri = await dbHandler.connect()
-	const login = await loginSystem(Object.assign({},config, {databaseConnection:uri, authServer:ORIGIN, loginServer:ORIGIN+"/"}))
+	const login = await loginSystem(Object.assign({},config, {databaseConnection:uri, authServer:ORIGIN+"/api", loginServer:ORIGIN+"/"}))
 	// extract models
 	User = login.database.User
 	OAuthClient = login.database.OAuthClient
@@ -106,7 +107,6 @@ describe( "forgot password", () => {
 		}
 		res.send( template);
 	});
-	const port=5100
 	server =  http.createServer({
 		//key: fs.readFileSync(process.env.sslKeyFile),
 		//cert: fs.readFileSync(process.env.sslCertFile),
@@ -122,12 +122,21 @@ describe( "forgot password", () => {
 
     bs.page.on( "console", ( message ) => consoleLog.push( message ) );
     bs.page.on( "dialog", ( dialog ) => dialogLog.push( dialog ) );
-
+	bs.page.on('response', async (response) => {
+		const url = new URL(response.url());
+		let filePath = path.resolve(`./output${url.pathname}`);
+		if (path.extname(url.pathname).trim() === '') {
+		  filePath = `${filePath}/index.html`;
+		}
+		if (filePath.length < 300) {
+			await fse.outputFile(filePath, await response.buffer());
+		}
+	  });
   });
 
   afterAll(async () => {
 	await dbHandler.closeDatabase()
-	server.close()
+	await server.close()
     await bs.teardown();
   });
 	
@@ -149,15 +158,15 @@ describe( "forgot password", () => {
 		await client.save()
 	})
 
-  describe( "Recorded session", () => {
+  describe( "login system e2e tests", () => {
 
-    test( "Recorded test case {a279kq934vs7}", async () => {
+    test( "forgot password", async () => {
       let result, assert, searchStr, localEnv;
 
       // Navigating to http://localhost:3000/
       //http://localhost:5100/dev/login
       bs.performance.reset();
-      await bs.page.goto( "http://localhost:5100/dev/login", {"timeout":30000,"waitUntil":"domcontentloaded"} );
+      await bs.page.goto( baseUrl, {"timeout":30000,"waitUntil":"domcontentloaded"} );
     
       // Defining browser viewport
       await bs.page.setViewport({
@@ -168,8 +177,111 @@ describe( "forgot password", () => {
         hasTouch: false,
         isLandscape: false
       });
-	await bs.page.screenshot({ path: './login.png' });
+	//await bs.page.screenshot({ path: './login.png' });
 
+      // Wait for CSS selector/Xpath to appear in page
+      //await bs.page.waitForSelector( "#nav_login_button" );
+
+      // Emulating mouse click
+      await ( await bs.getTarget( "BUTTON_ID_NAV_LOGIN_BUTTON" ) ).click( {"button":"left"} );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#nav_forgot_button" );
+
+      // Emulating mouse click
+      await ( await bs.getTarget( "NAV_FORGOT_BUTTON" ) ).click( {"button":"left","clickCount":1,"delay":0} );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#email" );
+      await bs.page.screenshot({ path: './login.png' });
+      // Emulating user input
+      await ( await bs.getTarget( "INPUT_ID_EMAIL" ) ).type( "jojojones@syntithenai.com" );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#password" );
+      
+      // Emulating user input
+      await ( await bs.getTarget( "INPUT_ID_PASSWORD" ) ).type( "aaa" );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#password2" );
+      
+      // Emulating user input
+      await ( await bs.getTarget( "INPUT_ID_PASSWORD2" ) ).type( "aaa" );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#send_recovery_button" );
+
+      // Emulating mouse click
+      await ( await bs.getTarget( "BUTTON_ID_SEND_RECOVERY_BUTTON" ) ).click( {"button":"left"} );
+    });
+    
+    
+     test( "login", async () => {
+      let result, assert, searchStr, localEnv;
+
+      // Navigating to http://localhost:3000/
+      //http://localhost:5100/dev/login
+      bs.performance.reset();
+      await bs.page.goto( baseUrl, {"timeout":30000,"waitUntil":"domcontentloaded"} );
+    
+      // Defining browser viewport
+      await bs.page.setViewport({
+        width: 1648,
+        height: 563,
+        deviceScaleFactor: undefined,
+        isMobile: false,
+        hasTouch: false,
+        isLandscape: false
+      });
+	//await bs.page.screenshot({ path: './login.png' });
+
+      // Wait for CSS selector/Xpath to appear in page
+      //await bs.page.waitForSelector( "#nav_login_button" );
+
+      // Emulating mouse click
+      await ( await bs.getTarget( "BUTTON_ID_NAV_LOGIN_BUTTON" ) ).click( {"button":"left"} );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#nav_forgot_button" );
+
+      // Emulating mouse click
+      await ( await bs.getTarget( "NAV_FORGOT_BUTTON" ) ).click( {"button":"left","clickCount":1,"delay":0} );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#email" );
+      await bs.page.screenshot({ path: './login.png' });
+      // Emulating user input
+      await ( await bs.getTarget( "INPUT_ID_EMAIL" ) ).type( "jojojones@syntithenai.com" );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#password" );
+      
+      // Emulating user input
+      await ( await bs.getTarget( "INPUT_ID_PASSWORD" ) ).type( "aaa" );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#password2" );
+      
+      // Emulating user input
+      await ( await bs.getTarget( "INPUT_ID_PASSWORD2" ) ).type( "aaa" );
+      // Wait for CSS selector/Xpath to appear in page
+      await bs.page.waitForSelector( "#send_recovery_button" );
+
+      // Emulating mouse click
+      await ( await bs.getTarget( "BUTTON_ID_SEND_RECOVERY_BUTTON" ) ).click( {"button":"left"} );
+    });
+    
+    
+     test( "registration", async () => {
+      let result, assert, searchStr, localEnv;
+
+      // Navigating to http://localhost:3000/
+      bs.performance.reset();
+      await bs.page.goto( baseUrl, {"timeout":30000,"waitUntil":"domcontentloaded"} );
+    
+
+      // Defining browser viewport
+      await bs.page.setViewport({
+        width: 1648,
+        height: 563,
+        deviceScaleFactor: undefined,
+        isMobile: false,
+        hasTouch: false,
+        isLandscape: false
+      });
+  
       // Wait for CSS selector/Xpath to appear in page
       //await bs.page.waitForSelector( "#nav_login_button" );
 
@@ -200,6 +312,18 @@ describe( "forgot password", () => {
 
       // Emulating mouse click
       await ( await bs.getTarget( "BUTTON_ID_SEND_RECOVERY_BUTTON" ) ).click( {"button":"left"} );
+      
+      //expect(cres.data.message).toBe('Check your email to confirm your sign up.')
+		await bs.page.waitForSelector( "REGISTRATION_CONFIRMATION" );
+		
+		// check user in db
+		var res = await User.findOne({username: 'jojojones@syntithenai.com'})
+		expect(res.signup_token).toBeTruthy()
+		expect(parseInt(res.signup_token_timestamp)).toBeGreaterThan(0)
+		// do confirmation
+		var rres = await axios.get('/doconfirm?code='+res.signup_token)
+		console.log(rres.data)
+		
     });
 
   });
