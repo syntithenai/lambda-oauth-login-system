@@ -5,7 +5,7 @@
     #shell: bash
     #working-directory: lambda-oauth-login-system-example
 
-name: Node.js CI
+name: Login System E2E Tests
 
 on:
   push:
