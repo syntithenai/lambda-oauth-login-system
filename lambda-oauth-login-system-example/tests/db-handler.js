@@ -5,10 +5,12 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const mongod = new MongoMemoryServer();
 
+
 /**
  * Connect to the in-memory database.
  */
 module.exports.connect = async () => {
+	await mongod.start();
     const uri = await mongod.getUri();
 
     const mongooseOpts = {
