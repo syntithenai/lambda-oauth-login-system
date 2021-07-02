@@ -80,8 +80,8 @@ export default  class ForgotPassword extends Component {
            <form className="form-signin" onSubmit={(e) => {e.preventDefault(); this.recoverPassword(this.state.email,this.state.password,this.state.password2); return false} }>
         
             
-          <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Password Recovery</h1>
-         
+          <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Password Recovery </h1>
+        
           <fieldset className='col-12' >
 				<label htmlFor="email" className='row'>Email </label><input  autoComplete='signin_email'  id="email" type='email' name='email' onChange={this.change} />
 				<label htmlFor="password" className='row'>New Password</label> <input  autoComplete="off"  id="password" type='password' name='password' onChange={this.change} />

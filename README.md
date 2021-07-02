@@ -18,6 +18,26 @@ Included are
 
 ## Quickstart Localhost
 
+For local development, pm2 is used to start a suite of services that
+- serve the web and api endpoints
+- compile changes to the libraries when source file change
+
+```pm2 start```
+
+To deploy the login system, the recommended approach is as a serverless function to a service like AWS Lambda.
+
+To Deploy to AWS  (assuming you have aws credentials configured with appropriate permissions)
+```
+cd api
+sls deploy
+```
+
+If you don't have credentials, you will be sent to the AWS management console to create an IAM user with appropriate credentials.
+
+
+
+
+
 ### Preparation
 
 #### Sendgrid
@@ -65,32 +85,21 @@ If you are using client apps served from a different domain, you will need to pr
 - CORS headers are added to restrict api access to allowedOrigins.
 - Messages sent via postMessage must come from a domain included in allowedOrigins.
 
-### Start a local webserver
-
-```
-cd api
-npm i
-sls offline
-```
-
-When the offline server has started, open https://localhost:5000/dev/login in your browser
 
 
 
-### Update the login system web pages 
-```
-cd client
-npm i
-npm run build
-```
 
-### Deploy to AWS  (assuming you have aws credentials configured with appropriate permissions)
-```
-cd api
-sls deploy
-```
+## Source Code Overview
 
-If you don't have credentials, you will be sent to the AWS management console to create an IAM user with appropriate credentials.
+The login system is divided into a few packages/top level folders.
+- express-oauth-login-system-server  providing Express routes for login/oauth.
+- lambda-oauth-login-system-react-components  providing  React  components used to implement the login system
+- api provides top level config of a development server using express AND serverless configuratio for deploying the system online.
+- client provides user interface. The build folder is served by the api server so that the user interface and API endpoints are on the same domain.
+- lambda-oauth-login-system-example shows how to use the login system on a different domain to your application.
+
+
+
 
 
 ## Integration 

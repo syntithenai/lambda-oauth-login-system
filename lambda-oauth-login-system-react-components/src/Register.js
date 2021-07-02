@@ -84,15 +84,16 @@ export default class Register extends Component {
             return res.data;  
           })
           .then(function(data) {
-          if (that.props.stopWaiting) that.props.stopWaiting();
-          if (data.error) {
-                    that.submitWarning(data.error);
-          } else {
-                that.setState({showConfirm: true})
-          }
-      }).catch(function(error) {
-        console.log(['request failed', error]);
-      });
+			  
+			  if (that.props.stopWaiting) that.props.stopWaiting();
+			  if (data.error) {
+						that.submitWarning(data.error);
+			  } else {
+					that.setState({showConfirm: true})
+			  }
+		  }).catch(function(error) {
+			console.log(['request failed', error]);
+		  });
     }; 
     
     render() {
