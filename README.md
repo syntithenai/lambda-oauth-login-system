@@ -1,5 +1,7 @@
 # Lambda Open Auth Login System
 
+[![Node.js CI](https://github.com/syntithenai/lambda-oauth-login-system/actions/workflows/e2etest.js.yml/badge.svg)](https://github.com/syntithenai/lambda-oauth-login-system/actions/workflows/e2etest.js.yml)
+
 This repository provides a web based login system that can be deployed to AWS Lambda.
 
 The login system provides a complete Open Auth implementation supporting social login.
