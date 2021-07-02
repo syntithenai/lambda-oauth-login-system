@@ -1,5 +1,9 @@
 # This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+defaults:
+  run:
+    shell: bash
+    working-directory: lambda-oauth-login-system-example
 
 name: Node.js CI
 
@@ -27,8 +31,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-      working-directory: ./lambda-oauth-login-system-example
     - run: npm run build --if-present
-      working-directory: ./lambda-oauth-login-system-example
     - run: npm test
-      working-directory: ./lambda-oauth-login-system-example
+    
