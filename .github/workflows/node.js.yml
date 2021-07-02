@@ -26,7 +26,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-     - working-directory: ./lambda-oauth-login-system-example
+      working-directory: ./lambda-oauth-login-system-example
      - run: npm ci
 #    - run: npm run build --if-present
     - run: npm install
