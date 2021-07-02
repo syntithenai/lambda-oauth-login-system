@@ -62,7 +62,7 @@ export default  class LoginSystem extends Component {
 		// prevent leading slash in root links
 		var linkBase = that.props.match && that.props.match.path ? ( that.props.match.path === "/" ? '' : that.props.match.path ) : ''
 		 let callBackFunctions = Object.assign({},this.props,{
-			//loginServer: this.props.loginServer,
+			loginServer: this.props.loginServer ? this.props.loginServer : linkBase,
             //logout : this.props.logout,
             //isLoggedIn : this.props.isLoggedIn,
             //saveUser : this.props.saveUser,
@@ -99,6 +99,7 @@ export default  class LoginSystem extends Component {
             return (
 				<div>
 				{(this.props.waiting || this.state.waiting) && <div className="overlay" style={{zIndex:999, position:'fixed', top: 0, left:0, width:'100%', height:'100%', opacity: 0.5, backgroundColor:'grey'}} onClick={this.stopWaiting} ><img style={{position: 'fixed' ,top: '100px', left: '100px', width: '100px', height: '100px'}} src={waitingImage} /></div>}
+                
                 <Router>
                     <Switch>
 						<Route  path={`${linkBase}/`} exact render={(props) => <Login {...callBackFunctions} isRoot={true}   />}  />
