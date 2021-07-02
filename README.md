@@ -18,9 +18,11 @@ Included are
 
 ## Quickstart Localhost
 
+First you will need to copy api/env.sample to api/.env and update configuration. More detail in the preparation section below.
+
 For local development, pm2 is used to start a suite of services that
 - serve the web and api endpoints
-- compile changes to the libraries when source file change
+- compile changes to the libraries when source files change
 
 ```pm2 start```
 
@@ -34,7 +36,11 @@ sls deploy
 
 If you don't have credentials, you will be sent to the AWS management console to create an IAM user with appropriate credentials.
 
-
+To run the test suite using puppetry
+```
+cd lambda-oauth-login-system-example
+npm test
+```
 
 
 
@@ -128,20 +134,10 @@ The ExternalLogin component provides properties to it's children including
 
 See the lambda-oauth-login-system-example for sample code.
 
-To trial the sample application, first ensure that the login system offline server has been started (on port 5000)
-```
-cd lambda-oauth-login-system-example
-sls offline
-```
+To trial the sample application, first ensure that the login system offline server has been started using pm2 as described above.
+
 The sample application will be available at http://localhost:5001/dev/handler
 
-The example detects the URL for the login system from the serverless output LAMBDARESTGATEWAY 
-The handler function uses this value to replace markers in the statically built example react app.
-
-#### Custom React App
-
-Where using the login from outside the serverless context (eg a static react app hosted on github pages), you can provide the loginServer url using
-the environment variable REACT_APP_LOGIN in the react build environment.
 
 
 ### Option 2 - Integrated Same Domain

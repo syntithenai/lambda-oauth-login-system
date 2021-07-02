@@ -23,7 +23,6 @@ if ( !nVer || nVer[ 1 ] < 9 ) {
     + ". You need at least v.9.x to run this test suite." );
 }
 
-console.log(__DEV__ ? 'DEV' : "NODEV")
 
 const {
         bs, util, fetch, localStorage
@@ -88,32 +87,13 @@ describe( "forgot password", () => {
 
 		bs.page.on( "console", ( message ) => consoleLog.push( message ) );
 		bs.page.on( "dialog", ( dialog ) => dialogLog.push( dialog ) );
-		// add response logging
-		//bs.page.on('response', async (response) => {
-			//const url = new URL(response.url());
-			//let filePath = path.resolve(`./output${url.pathname}`);
-			//if (path.extname(url.pathname).trim() === '') {
-			  //filePath = `${filePath}/index.html`;
-			//}
-			//if (filePath.length < 300) {
-				//await fse.outputFile(filePath, await response.buffer());
-			//}
-		//});
+
 	});
 
 	afterAll(async () => {
 		await services.teardown()
 		await bs.teardown();
 	});
-
-		
-	//beforeAll(async () => {
-		//services = await startServices()	
-	//})
-
-	//afterAll(async () => {
-		//await services.teardown()
-	//})
 
 	afterEach(async () => services ? await services.dbHandler.clearDatabase() : null);
 
@@ -132,7 +112,6 @@ describe( "forgot password", () => {
 	})
 
 	async function signupAndConfirmUser(bs,services,name,email,password) {
-		bs.performance.reset();
 		await bs.page.goto( services.exampleBaseUrl, {"timeout":30000,"waitUntil":"domcontentloaded"} );
 		await bs.page.waitForSelector( "#nav_login_button" );
 		await ( await bs.getTarget( "NAV_LOGIN_BUTTON" ) ).click( {"button":"left"} );
@@ -160,7 +139,6 @@ describe( "forgot password", () => {
 	}
 	
 	async function loginUser(bs,services,email,password) {
-		bs.performance.reset();
 		await bs.page.goto( services.exampleBaseUrl, {"timeout":30000,"waitUntil":"domcontentloaded"} );
 		await bs.page.waitForSelector( "#nav_login_button" );
 		await ( await bs.getTarget( "NAV_LOGIN_BUTTON" ) ).click( {"button":"left"} );
@@ -176,7 +154,6 @@ describe( "forgot password", () => {
 	}
 	
 	async function forgotPassword(bs,services,email,newPassword) {
-		bs.performance.reset();
 		await bs.page.goto( services.exampleBaseUrl, {"timeout":30000,"waitUntil":"domcontentloaded"} );
 		await bs.page.waitForSelector( "#nav_login_button" );
 		await ( await bs.getTarget( "NAV_LOGIN_BUTTON" ) ).click( {"button":"left"} );
@@ -202,13 +179,18 @@ describe( "forgot password", () => {
 		return fres.data
 	}
  
-	describe( "login system e2e tests reg", () => {
-		test( "forgot password", async () => {
+	describe( "login system e2e tests", () => {
+		test( "can signup, login, forgot, login(updated pw), logout", async () => {
+			bs.performance.reset();
 			var data = await signupAndConfirmUser(bs,services,'Bill Micks','billym@syntithenai.com','aaa')
 			//console.log(data)
 			await loginUser(bs,services,'billym@syntithenai.com','aaa')
 			await forgotPassword(bs,services,'billym@syntithenai.com','bbb')
 			await loginUser(bs,services,'billym@syntithenai.com','bbb')
+			await bs.page.waitForSelector( "#nav_logout_button" );
+			await bs.page.$eval('#nav_logout_button', elem => elem.click());
+			const exists = await bs.page.$eval('#nav_profile_button', () => true).catch(() => false)
+			expect(exists).toBe(false)
 		});
 
 	  });
