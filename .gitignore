@@ -32,7 +32,6 @@ lambda-oauth-login-system-example/.env
 
 express-oauth-login-system-server/
 
-package-lock.json
 
 lambda-oauth-login-system-example/dump.tgz
 lambda-oauth-login-system-example/dump
