@@ -103,7 +103,7 @@ function createClients(config, database) {
 						Promise.all(promises).then(function(res) {
 							//console.log(['CREATED AUTH CLIENTS',res])
 							database.OAuthClient.find({}).then(function(foundClients) {
-								//console.log(['CREATED AUTH CLIENTS found',foundClients])
+								console.log(['CREATED AUTH CLIENTS found',foundClients])
 								resolve()
 							})
 						})
