@@ -142,29 +142,29 @@ describe( "forgot password", () => {
 		await bs.teardown();
 	});
 
-	afterEach(async () => services ? await services.dbHandler.clearDatabase() : null);
+	//afterEach(async () => services ? await services.dbHandler.clearDatabase() : null);
 
-	beforeEach(async () => {
-		await services.dbHandler.clearDatabase()
-		await createClients(config, services.database)
-		var clients = await services.database.OAuthClient.find({})
-		console.log(['CLIENTs BE',clients])
-		//console.log(['CREATE CLIENT',config.oauthClients[0]])
-		//var clients = await services.database.OAuthClient.deleteMany({})
-		//var clientConfig = config.oauthClients[0]
-		//var client = new services.database.OAuthClient({
-			//clientId: clientConfig.clientId, 
-			//clientSecret:clientConfig.clientSecret,
-			//name:clientConfig.name,
-			//clientName:clientConfig.name,
-			//by:clientConfig.by,
-			//website_url:clientConfig.clientWebsite,
-			//privacy_url:clientConfig.clientPrivacyPage,
-			//redirectUris:Array.isArray(clientConfig.redirectUris) ? clientConfig.redirectUris : [],
-			//image:''
-		//})
-		//await client.save()
-	})
+	//beforeEach(async () => {
+		//await services.dbHandler.clearDatabase()
+		//await createClients(config, services.database)
+		//var clients = await services.database.OAuthClient.find({})
+		//console.log(['CLIENTs BE',clients])
+		////console.log(['CREATE CLIENT',config.oauthClients[0]])
+		////var clients = await services.database.OAuthClient.deleteMany({})
+		////var clientConfig = config.oauthClients[0]
+		////var client = new services.database.OAuthClient({
+			////clientId: clientConfig.clientId, 
+			////clientSecret:clientConfig.clientSecret,
+			////name:clientConfig.name,
+			////clientName:clientConfig.name,
+			////by:clientConfig.by,
+			////website_url:clientConfig.clientWebsite,
+			////privacy_url:clientConfig.clientPrivacyPage,
+			////redirectUris:Array.isArray(clientConfig.redirectUris) ? clientConfig.redirectUris : [],
+			////image:''
+		////})
+		////await client.save()
+	//})
 	
 	async function signupAndConfirmUser(bs,services,name,email,password) {
 		await bs.page.goto( services.exampleBaseUrl, {"timeout":30000,"waitUntil":"domcontentloaded"} );
