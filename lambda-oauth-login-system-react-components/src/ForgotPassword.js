@@ -41,7 +41,8 @@ export default  class ForgotPassword extends Component {
             password: password,
             password2: password2,
             code: Math.random().toString(36).replace(/[^a-z]+/g, ''),
-            apiUrl: window.location.origin + window.location.pathname,
+            //apiUrl: window.location.origin + window.location.pathname,
+            // optional react router parent path part
             linkBase: this.props.linkBase
           }
         })

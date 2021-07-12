@@ -76,7 +76,8 @@ export default class Register extends Component {
             username: email,
             password: password,
             password2: password2,
-            apiUrl: window.location.origin + window.location.pathname,
+            //apiUrl: window.location.origin + window.location.pathname,
+            // optional react router parent path
             linkBase: that.props.linkBase
           }
         })
@@ -103,6 +104,7 @@ export default class Register extends Component {
                 { this.state.showConfirm && <RegistrationConfirmation/> }
                 { !this.state.showConfirm && <div style={{paddingLeft:'1em',clear:'both'}}>       
                     <form className="col-lg-12" style={{minWidth: '400px'}} method="POST" onSubmit={(e) => this.submitSignUp(e)}  >
+                      
                       <div className="form-group">
                         {window.opener && <button className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
                          Close</button>}

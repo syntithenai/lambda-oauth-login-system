@@ -6,7 +6,7 @@
   },
   "puppeteer.launch": {
     "devtools": true,
-    "headless": false,
+    "headless": true,
     "args": [
     "--no-sandbox",
     "--disable-dev-shm-usage",
