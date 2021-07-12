@@ -35,21 +35,38 @@ export default  class LoginSuccess extends Component {
 	
 	componentDidUpdate(props) {
 		let that = this
-		if (props && props.isLoggedIn()) {
-			// delay for next poll message
-			setTimeout(function() {
-				that.setState({redirect: props.loginRedirect && props.loginRedirect.trim() ? props.loginRedirect : '/'})
-			},5000)
-		}
+		//if (props.userInitialised) {
+			if (props && props.isLoggedIn()) {				
+				// delay for next poll message
+				setTimeout(function() {
+				
+					let authRequest = null
+					try {
+						authRequest = JSON.parse(localStorage.getItem('auth_request'))
+					} catch (e) {
+						//console.log(e)
+					}
+					console.log(authRequest)
+					if (authRequest) {
+						that.setState({redirect: '/authorize'})
+					} else {
+						that.setState({redirect: props.loginRedirect && props.loginRedirect.trim() ? props.loginRedirect : '/'})
+					}		
+			
+					
+					//that.setState({redirect: props.loginRedirect && props.loginRedirect.trim() ? props.loginRedirect : '/'})
+				},1200)
+			}
+		//}
 	}
  
     render() {
 		if (this.state.redirect && this.state.redirect.length > 0) {
+			//return <div>{this.state.redirect} </div> 
 			return <Redirect to={this.state.redirect} />
 		} else {
 			return <b>Checking Login</b>
 		}
-		//
-    };
+	}
 }
 

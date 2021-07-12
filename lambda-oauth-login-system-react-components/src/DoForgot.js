@@ -15,13 +15,15 @@ export default  class DoForgot extends Component {
     
     componentDidMount() {
 		let that = this
+		var parts = window.location.href.split("?")
+		var searchString = parts.length > 1 ? parts[1] : ''
 		if (that.props.startPollForgotSuccess) {
 			//console.log(this.state)
 			that.props.startPollForgotSuccess(window.location.search)
 		} else {
 			const axiosClient = getAxiosClient();
 			axiosClient({
-			  url: that.props.loginServer+'/api/dorecover' + window.location.search,
+			  url: that.props.loginServer+'/api/dorecover?' + searchString,
 			  method: 'get',
 			}).then(function(res) {
 				return res.data;  

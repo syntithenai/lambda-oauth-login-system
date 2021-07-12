@@ -18,7 +18,7 @@ module.exports = {
     name: 'dev_client',
     cwd: './client',
     script: 'npm run-script build && while true; do sleep 100;  done',
-    watch: './src'
+    watch: ['./src','../lambda-oauth-login-system-react-components/dist/index.js']
   }
   , 
   {

@@ -16,7 +16,7 @@ export default  class Login extends Component {
     
     constructor(props) {
         super(props);
-        this.state={redirect: null,  signin_username:'',signin_password:'',rememberme:false};
+        this.state={redirect: null,  signin_username:'',signin_password:'',rememberme:false, clients: null, client: null, loadingClients: false};
         this.change = this.change.bind(this);
         this.signIn = this.signIn.bind(this);
         this.startOauthFlow = this.startOauthFlow.bind(this)
@@ -45,9 +45,50 @@ export default  class Login extends Component {
 	
     }
     
+    componentDidUpdate(props) {
+		let that = this
+		//console.log('UPD')
+        if (!this.state.clients && !this.state.loadingClients) {
+		   this.setState({loadingClients: true})
+		   //console.log(['UPD IUSER',this.props.user])
+           var axiosClient = getAxiosClient()
+           axiosClient.get(this.props.loginServer + '/api/oauthclientspublic').then(function(results) {
+			   //console.log('loaded clients')
+			   //console.log(results)
+			   let params = that.props.location.search ? that.props.location.search.slice(1).split("&") : [];
+				let paramsObject = {};
+				params.map(function(keyAndData) {
+					let parts = keyAndData.split("=");
+					if (parts.length === 2) {
+						paramsObject[parts[0]] = parts[1]
+					}
+					return null;
+				})
+				var clientsIndex = {}
+				if (results && results.data && Array.isArray(results.data)) {
+					results.data.forEach(function(client) {
+						if (client.clientId) clientsIndex[client.clientId] = client;
+					})
+				}
+				//console.log([paramsObject,clientsIndex])
+				if (paramsObject.clientId && clientsIndex[paramsObject.clientId]) {
+					that.setState({'clients':results, loadingClients: false, client: clientsIndex[paramsObject.clientId]})
+				} else if (results.data && results.data && results.data.length > 0) {
+					that.setState({'clients':results, loadingClients: false, client: results.data[0]})
+				} 
+		   })
+           //this.props.history.push(this.props.linkBase + "/login");
+       }
+    };
+    
     startOauthFlow(url) {
-		if (this.authWindow) this.authWindow.close() 
-		this.authWindow = window.open(url)
+		// external context, open new window
+		if (this.props.startPollLoginSuccess || this.props.pollAuthSuccess) {
+			if (this.authWindow) this.authWindow.close() 
+			this.authWindow = window.open(url)
+		} else {
+			window.location = url
+		}
 		if (this.props.pollAuthSuccess) this.props.pollAuthSuccess(this.authWindow)
 	}
  
@@ -121,24 +162,34 @@ export default  class Login extends Component {
 				</a></span>                         
 			 });
 			   return <div> 
-		   
-			   {window.opener && <button id="close_button" className='btn btn-danger' style={{float:'right', marginLeft:'3em'}} onClick={function() {window.close()}}>
-					 Close</button>}
-							
-			 {(this.props.isLoggedIn() && !this.props.hideButtons) && <Link id="nav_profile_button" to={this.props.linkBase + '/profile'} style={{clear:'both',display:'inline'}} >
-				 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary'  >Profile</div>
-			</Link>}
-			 
-			 <Link id="nav_forgot_button" to={this.props.linkBase + '/forgot'} style={{clear:'both',display:'inline'}} >
-			 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</div>
-			 </Link>
-			 
-			 <Link  id="nav_register_button"to={this.props.linkBase + '/register'} style={{clear:'both',display:'inline'}} >
-			 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div>
-			 </Link>
-			  
+			
+				
+				<div style={{width:'100%', clear:'both'}} >
+				
+					<Link  id="nav_privacy_button" to={this.props.linkBase + '/privacy'} style={{clear:'both',display:'inline'}} >
+					 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em', marginBottom:'0.4em'}} className='btn btn-warning' >Privacy Policy</div>
+					 </Link>
+					
+				   {window.opener && <button id="close_button" className='btn btn-danger' style={{float:'right', marginLeft:'3em', marginBottom:'0.4em'}} onClick={function() {window.close()}}>
+						 Close</button>}
+								
+				 {(this.props.isLoggedIn() && !this.props.hideButtons) && <Link id="nav_profile_button" to={this.props.linkBase + '/profile'} style={{clear:'both',display:'inline'}} >
+					 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em', marginBottom:'0.4em'}} className='btn btn-primary'  >Profile</div>
+				</Link>}
+				 
+				 <Link id="nav_forgot_button" to={this.props.linkBase + '/forgot'} style={{clear:'both',display:'inline'}} >
+				 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em', marginBottom:'0.4em'}} className='btn btn-primary' >Forgot Password</div>
+				 </Link>
+				 
+				 <Link  id="nav_register_button" to={this.props.linkBase + '/register'} style={{clear:'both',display:'inline'}} >
+				 <div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em', marginBottom:'0.4em'}} className='btn btn-primary' >Register</div>
+				 </Link>
+				 
+				 
+			 </div>
 			  
 			  <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Sign in</h1>
+			  
 			 {loginButtons && loginButtons.length > 0 && <div style={{float:'right'}}> using {loginButtons}  <br/> </div>}
 				 
 			   <form className="form-signin"   onSubmit={this.signIn}  >

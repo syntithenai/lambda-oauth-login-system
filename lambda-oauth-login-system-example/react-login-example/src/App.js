@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {Button, Badge} from 'react-bootstrap'
 import {getAxiosClient, getDistinct,analyticsEvent, addLeadingZeros} from './helpers'  
 
+// web server uses marker replace to provide this value to React
 const LOGIN_SERVER = '###MARKER_loginServer###'
 
 function App(props) {
@@ -23,7 +24,7 @@ function App(props) {
 	 const [itemsQueued, setItemsQueued] = useState(false)
      var axiosClient = getAxiosClient()
     
-	// notifications from nested components
+	 // notifications from nested components
 	 function startWaiting() {
 		  setWaiting(true)
 	  }

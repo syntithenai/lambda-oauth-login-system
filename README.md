@@ -2,7 +2,7 @@
 
 [![Node.js CI](https://github.com/syntithenai/lambda-oauth-login-system/actions/workflows/e2etest.js.yml/badge.svg)](https://github.com/syntithenai/lambda-oauth-login-system/actions/workflows/e2etest.js.yml)
 
-This repository provides a web based login system that can be deployed to AWS Lambda.
+This repository provides a web based login system that can optionally be deployed to AWS Lambda.
 
 The login system provides a complete Open Auth implementation supporting social login.
 
@@ -37,12 +37,6 @@ sls deploy
 ```
 
 If you don't have credentials, you will be sent to the AWS management console to create an IAM user with appropriate credentials.
-
-To run the test suite using puppetry
-```
-cd lambda-oauth-login-system-example
-npm test
-```
 
 
 
@@ -94,6 +88,18 @@ If you are using client apps served from a different domain, you will need to pr
 - Messages sent via postMessage must come from a domain included in allowedOrigins.
 
 
+
+
+
+## Tests
+
+To run the end to end test suite using puppetry
+```
+cd lambda-oauth-login-system-example
+npm test
+```
+
+The related package express-oauth-login-system also includes integration tests for the API endpoints.
 
 
 
@@ -204,7 +210,7 @@ Returning JSON
 - /saveuser
 - /me
 - /refresh_token
-- / buttons
+- /buttons
 - /signup
 - /signinajax
 - /recover
@@ -213,3 +219,63 @@ Returning JSON
 
 
 
+
+
+## Authorizing external services
+
+External services can use the oauth routes to obtain a token to access your API directly.
+In developing skills for Alexa(https://developer.amazon.com/) or Google Actions (https://console.actions.google.com/), 
+the project administration website allows for entering
+- authorization URL
+- token URL
+- clientId
+- clientSecret
+
+The authorization and token urls are immediately under the path that you located the loginsystem express routes.
+For example 
+- https://localhost/api/login/authorize
+- https://localhost/api/login/token
+
+
+[Some services also allow a choice between implicit and authorization code flows. Use authorization code.]
+
+
+In the mongo database, create an entry in the oauthclients collection for each external service that can authenticate.
+
+
+Client entries can also include fields to be used on the authorization page that is loaded when the external service redirects to your website to ask the user permission to grant access. 
+- name
+- website_url
+- privacy_url
+
+Update the value ```redirectUris``` to include the redirectUri that will be sent with requests to the authorize and token endpoints.
+
+```
+mongo browserexample
+> db.users.insert({"_id" : ObjectId("5c859a7a64997a72a107065b"), "clientId" : "newclient", "clientSecret" : "testpass", "name" : "New Client", "website_url" : "https://client.com", "privacy_url" : "https://client.com/privacy", "grants" : [ "authorization_code", "password", "refresh_token", "client_credentials" ], "redirectUris" : []})
+```
+
+The server creates an initial client based on configuration settings for local authentication purposes. Examine that item for details.
+
+```
+mongo browserexample
+> db.oauthclients.find()
+{ "_id" : ObjectId("5c859a7a64997a72a107065b"), "clientId" : "test", "clientSecret" : "testpass", "name" : "Test Client", "website_url" : "https://localhost", "privacy_url" : "https://localhost/privacy", "grants" : [ "authorization_code", "password", "refresh_token", "client_credentials" ], "redirectUris" : [ ], "__v" : 0 }
+```
+
+
+
+## Cross Site Request Forgery (CSRF) Protection
+
+The example provides code to protect against Cross Site Request Forgery by
+- setting a cookie csrf-token when the react app loads  (see routes/loginsystem.js)
+- ensuring that the ajax library used in React sets the header x-csrf-token to the value of the cookie  (see src/LoginSystem.js)
+- checking that the cookie and the header match for routes that need protecting. Externally available API endpoints should not use CSRF checking.
+
+
+## Links
+
+- https://github.com/14gasher/oauth-example#url
+- https://hasura.io/blog/best-practices-of-using-jwt-with-graphql/#refresh_token
+- https://oauth2-server.readthedocs.io/en/latest/index.html
+- https://github.com/slavab89/oauth2-server-example-mongodb

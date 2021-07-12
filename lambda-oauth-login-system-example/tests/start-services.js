@@ -46,7 +46,7 @@ async function startServices() {
 		key: fs.readFileSync(path.join(__dirname,'../../api/certs/key.pem')),
 		cert: fs.readFileSync(path.join(__dirname,'../../api/certs/cert.pem')),
 	}, loginApp).listen(loginPort, () => {
-	  console.log(`Login server listening  at https://localhost:` + loginPort)
+	//  console.log(`Login server listening  at https://localhost:` + loginPort)
 	}) 
 	
 	// example app using login system on different port
@@ -59,10 +59,10 @@ async function startServices() {
 		key: fs.readFileSync(path.join(__dirname,'../../api/certs/key.pem')),
 		cert: fs.readFileSync(path.join(__dirname,'../../api/certs/cert.pem')),
 	}, exampleApp).listen(examplePort, () => {
-	  console.log(`Example server listening  at https://localhost:` + examplePort)
+	 // console.log(`Example server listening  at https://localhost:` + examplePort)
 	}) 
 
-	function getAxiosClient(loginOrigin, loginBaseUrl, token,cookies) {
+	function getAxiosClient(loginOrigin, loginBaseUrl, token,cookies, contentType) {
 		var headers = {'Origin': loginOrigin}
 		if (token) {
 			headers['Authorization'] =  'Bearer '+token
@@ -70,7 +70,9 @@ async function startServices() {
 		if (cookies) {
 			headers['Cookie'] =  cookies.join("; ")
 		}
-		 
+		if (contentType) {
+		 headers['Content-Type'] = contentType
+		}
 		var authClient = axiosLib.create({
 			  //baseURL: loginBaseUrl,
 			  httpsAgent: new https.Agent({  

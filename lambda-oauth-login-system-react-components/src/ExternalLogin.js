@@ -336,23 +336,27 @@ export default class ExternalLogin   extends Component {
 		this.loginPopup = null
 		try {
 			this.loginPopup = window.open(url,'mywin','resizable=no, scrollbars=no, status=no, width=10,height=10, top: 0, left:'+window.screen.availHeight+10);
+			if(!newWin || newWin.closed || typeof newWin.closed=='undefined') { 
+				// blocked
+			} else {
+				that.checkIsLoggedIn(this.loginPopup)
+				this.setState({'loginCheckActive':true})
+				// timeout close
+				setTimeout(function() {
+					if (that.loginPopup) that.loginPopup.close()
+					that.loginPopup = null
+					if (false) that.setState({'loginCheckActive':false})
+					// auto refresh token
+					if (that.refreshTimeout) clearTimeout(that.refreshTimeout)
+					that.refreshTimeout = setTimeout(function() {
+						that.createLoginIframe()
+					},that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 600000 )
+				},15000)
+			}
 		} catch (e) {
 			console.log(e)
 		}
 		//console.log(['loginwindow',refreshToken,url,this.loginPopup])
-		that.checkIsLoggedIn(this.loginPopup)
-		this.setState({'loginCheckActive':true})
-		// timeout close
-		setTimeout(function() {
-			if (that.loginPopup) that.loginPopup.close()
-			that.loginPopup = null
-			if (false) that.setState({'loginCheckActive':false})
-			// auto refresh token
-			if (that.refreshTimeout) clearTimeout(that.refreshTimeout)
-			that.refreshTimeout = setTimeout(function() {
-				that.createLoginIframe()
-			},that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 600000 )
-		},15000)
 	}
 
 	doCreateLoginFrame() {
@@ -412,11 +416,11 @@ export default class ExternalLogin   extends Component {
         //var url = this.props.loginServer+ '#login'
         //var popup = window.open(url,'mywin')
         //this.pollShouldClose(popup,['login','register','forgot','registerconfirm','privacy'])
-    }
+     }
     
      doProfile() {
         //sShouldClose(popup,['profile','logout'])
-    }
+     }
     
     postlogout(bearerToken) {
       let that = this;
@@ -429,6 +433,7 @@ export default class ExternalLogin   extends Component {
 		});	
       
     };
+    
     doLogout() {
 		let that = this
 		var origin = new URL(that.props.loginServer).origin

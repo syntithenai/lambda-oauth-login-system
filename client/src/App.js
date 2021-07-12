@@ -8,6 +8,7 @@ import {HashRouter as Router, Route, Link} from 'react-router-dom'
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+// web server uses marker replace to provide these values to React
 const LOGIN_SERVER = '###MARKER_loginServer###'
 const ALLOWED_ORIGINS = '###MARKER_allowedOrigins###'  
 
@@ -51,8 +52,8 @@ class App extends Component {
 	    try {
 			var u = new URL(loginServer)
 			if (allowedOrigins == '' || !amarkerReplaced) {
-			allowedOrigins = u.origin
-		}
+				allowedOrigins = u.origin
+			}
 		} catch (e) {
 			console.log(e)
 		}

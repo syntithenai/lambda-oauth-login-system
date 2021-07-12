@@ -14,13 +14,16 @@ export default  class DoConfirm extends Component {
     }
     
     componentDidMount() {
+		//console.log(['DOCONF',window.location,window.hash])
+		var parts = window.location.href.split("?")
+		var searchString = parts.length > 1 ? parts[1] : ''
 		let that = this
 		if (that.props.startPollConfirmSuccess) {
 			that.props.startPollConfirmSuccess(window.location.search)
 		} else {
 			const axiosClient = getAxiosClient();
 			axiosClient({
-			  url: that.props.loginServer+'/api/doconfirm' + window.location.search,
+			  url: that.props.loginServer+'/api/doconfirm?' + searchString,
 			  method: 'get',
 			}).then(function(res) {
 				return res.data;  

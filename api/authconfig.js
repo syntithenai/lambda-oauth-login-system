@@ -62,13 +62,34 @@ module.exports = {
    
    // local oauth server
    // todo allow for many clients - alexa, google, local... FORNOW create extra records
-   clientId:process.env.clientId,
-   clientSecret:process.env.clientSecret,
-   clientName:process.env.clientName,
-   clientWebsite:process.env.clientWebsite,
-   clientPrivacyPage:process.env.clientPrivacyPage,
-   clientImage:process.env.clientImage,
-   
+   oauthClients: [
+   // primary/default client for obtaining tokens 
+   {
+	   clientId:process.env.clientId,
+	   clientSecret:process.env.clientSecret,
+	   clientName:process.env.clientName,
+	   clientWebsite:process.env.clientWebsite,
+	   clientBy:process.env.clientBy,
+	   redirectUris:[getGatewayUrl()+'/login'],
+	   clientImage:process.env.clientImage,
+	},
+	// additional clients 
+	{
+	   clientId:'alexa',
+	   clientSecret:process.env.clientSecret,
+	   clientName:'My Cool Alexa App',
+	   clientWebsite:'http://mycoolalexaapp.com',
+	   clientBy:'Joe Bloggs',
+	   redirectUris:[
+	     getGatewayUrl()+'/login',
+		"https://layla.amazon.com/api/skill/link/M12PRKT3ESLPTD",
+		"https://pitangui.amazon.com/api/skill/link/M12PRKT3ESLPTD",
+		"https://alexa.amazon.co.jp/api/skill/link/M12PRKT3ESLPTD"
+	  ],
+	   clientImage:process.env.clientImage,
+	}
+	],
+ 
    // EMAIL
     mailFrom:process.env.mailFrom,
     sendGridApiKey: process.env.sendGridApiKey,

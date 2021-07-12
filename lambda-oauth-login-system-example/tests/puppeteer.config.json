@@ -6,10 +6,12 @@
   },
   "puppeteer.launch": {
     "devtools": true,
-    "headless": true,
+    "headless": false,
     "args": [
     "--no-sandbox",
-    "--disable-dev-shm-usage"
+    "--disable-dev-shm-usage",
+    "--disable-popup-blocking", 
+    "--allow-popups-during-page-unload"
     ],
     "slowMo": 30,
     "ignoreHTTPSErrors": true

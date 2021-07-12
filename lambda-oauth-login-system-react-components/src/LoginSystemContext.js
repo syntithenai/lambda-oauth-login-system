@@ -35,9 +35,9 @@ export default  class LoginSystemContext extends Component {
         if (window.location.search && window.location.search.indexOf('?refresh_token') !== -1) {
 			refreshToken = window.location.search.slice(15)
 		}
-		//console.log('userefersh')
+		//console.log('userefershdd')
 		this.useRefreshToken(refreshToken).then(function(userAndToken) { 
-			if (userAndToken.user) {
+			if (userAndToken.token) {
 				//console.log(["finished use refresh token SET USER",userAndToken])
 				that.setUser(userAndToken)
 			}
@@ -70,8 +70,8 @@ export default  class LoginSystemContext extends Component {
 						checkActive = true
 						that.useRefreshToken().then(function (user) {
 							that.setUser(user)
-							console.log('send user after check')
-							console.log({user:that.state.user})
+							//console.log('send user after check')
+							//console.log({user:that.state.user})
 							event.source.postMessage({check_login_ok: true, user:that.state.user},event.origin)
 							checkActive = false
 							//if (user && user.username) 
@@ -125,10 +125,10 @@ export default  class LoginSystemContext extends Component {
                 if (event.data && event.data.login && event.data.username && event.data.password && that.state.userInitialised) {
 					//console.log(['master event login userpass',event.data])
 				    if (!loginActive) {
-						console.log(['madster event userpass not active'])
+						//console.log(['madster event userpass not active'])
 						loginActive = true
                 		that.signIn(event.data.username,event.data.password).then(function(result) {
-							console.log(['madster event signed in',result])
+							//console.log(['madster event signed in',result])
 							if (result) {
 								if (result.error) {
 									event.source.postMessage({login_fail: result.error},event.origin)
@@ -291,6 +291,7 @@ export default  class LoginSystemContext extends Component {
 	   
 	
     useRefreshToken(refreshToken) {
+        //console.log('USE REFRESH TOKEN')
         let that = this
         return new Promise(function(resolve,reject) {
             const axiosClient = getAxiosClient();
@@ -312,7 +313,7 @@ export default  class LoginSystemContext extends Component {
                             that.useRefreshToken().then(function(userAndToken) { 
                                 that.setUser(userAndToken)
                             })
-                        },that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 8400) // 14 minutes
+                        },that.props.refreshInterval && that.props.refreshInterval > 0 ? that.props.refreshInterval : 8400000) // 14 minutes
                         resolve(combined)
                     })
                 } else {

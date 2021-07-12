@@ -91,7 +91,7 @@ export default  class LoginSystem extends Component {
             
         });
         if (this.state.authRequest) {
-			return <div className='pending-auth-request' ><Link to={`${linkBase}/auth`} className='btn btn-success'  >Pending Authentication Request</Link></div>
+			return <div className='pending-auth-request' ><Link to={`${linkBase}/authorize`} className='btn btn-success'  >Pending Authentication Request</Link></div>
 				
 		} else {
             
@@ -108,7 +108,7 @@ export default  class LoginSystem extends Component {
 						<Route  path={`${linkBase}/register`}  render={(props) => <Register {...callBackFunctions}   />}  />
 						<Route  path={`${linkBase}/registerconfirm`}  render={(props) => <RegistrationConfirmation {...callBackFunctions}   />}  />
 						<Route  path={`${linkBase}/logout`}  render={(props) => <Logout {...callBackFunctions}   />}  />
-						<Route  path={`${linkBase}/oauth`}  render={(props) => <OAuth {...callBackFunctions}   />}  />
+						<Route  path={`${linkBase}/authorize`}  render={(props) => <OAuth {...callBackFunctions}   />}  />
 						<Route  path={`${linkBase}/forgot`}  render={(props) => <ForgotPassword {...callBackFunctions}   />}  />
 						<Route  path={`${linkBase}/privacy`}  render={(props) => <TermsOfUse {...callBackFunctions}   />}  />
 						

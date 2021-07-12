@@ -26,7 +26,7 @@ loginSystem(config).then(function(login) {
 		if (!template.trim()) {
 			// serve compressed build file that uses LoginSystemContext
 			template = String(fs.readFileSync(path.join(__dirname,'./build', 'index.html')))
-			console.log(config)
+			//console.log(config)
 			template = template.replace(/###MARKER_loginServer###/g,config.loginServer).replace(/###MARKER_allowedOrigins###/g,config.allowedOrigins)
 		}
 		res.send( template);

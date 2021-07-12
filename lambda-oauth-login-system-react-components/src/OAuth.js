@@ -1,21 +1,25 @@
 import React, { Component } from 'react';
-
-import tickImage from './images/check-solid.svg'
-import crossImage from './images/times-circle-solid.svg'
+import Login from './Login'
+import {Link} from 'react-router-dom'
+import {getAxiosClient} from './helpers'  
 
 export default  class OAuth extends Component {
     
-    constructor(props) {
+    constructor(props) { 
         super(props);
-        this.state={};
+        this.state={authRequest:{}, loadingClients: false, clients: null, client: null};
         this.change = this.change.bind(this);
         this.cancelAuthRequest = this.cancelAuthRequest.bind(this);
+        this.createAuthRequest = this.createAuthRequest.bind(this);
+        this.approveAuthRequest = this.approveAuthRequest.bind(this);
      }
          
     change(e) {
         var state = {};
-        state[e.target.name] =  e.target.value;
-        this.setState(state);
+        if (e && e.target && e.target.name ) {
+			state[e.target.name] =  e.target.value;
+			this.setState(state);
+		}
         return true;
     }
     
@@ -23,22 +27,45 @@ export default  class OAuth extends Component {
 		e.preventDefault();
 		this.setState({authRequest:null})
 		if (localStorage && localStorage.setItem) localStorage.setItem('auth_request','')
-		window.location='/'
+		window.location=this.props.loginServer
 		return false;
 	}
     
+    approveAuthRequest(e) {
+		if (localStorage && localStorage.setItem) {
+			localStorage.setItem('auth_request','')
+			localStorage.setItem('pending_auth_request',JSON.stringify(this.state.authRequest))
+		}
+		//this.setState({authRequest:null})
+		window.location=this.props.loginServer
+		return false;
+	}
     
-    componentDidUpdate() {
-        if (!this.props.isLoggedIn()) {
-           this.props.history.push(this.props.linkBase + "/login");
+    componentDidUpdate(props) {
+		let that = this
+	    if (props.isLoggedIn()  && !this.state.loadingClients) {
+			let params = that.props.location.search ? that.props.location.search.slice(1).split("&") : [];
+			let paramsObject = {};
+			params.map(function(keyAndData) {
+				let parts = keyAndData.split("=");
+				if (parts.length === 2) {
+					paramsObject[parts[0]] = parts[1]
+				}
+				return null;
+			})
+		   this.setState({loadingClients: true})
+	       var axiosClient = getAxiosClient(this.props.user.token.access_token)
+           axiosClient.get(this.props.loginServer + '/api/oauthclients').then(function(results) {
+			    that.createAuthRequest(paramsObject, results)
+		   })
        }
     };
   
     componentDidMount() {
 		let that = this;
-        if (!this.props.isLoggedIn()) {
-           this.props.history.push(this.props.linkBase + "/login");
-       } else {
+        //if (this.props.userInitialised && !this.props.isLoggedIn()) {
+           //this.props.history.push(this.props.linkBase + "/login");
+       //} else {
 			// extract request info
 			let params = this.props.location.search ? this.props.location.search.slice(1).split("&") : [];
 			let paramsObject = {};
@@ -49,49 +76,55 @@ export default  class OAuth extends Component {
 				}
 				return null;
 			})
-			if (paramsObject.response_type && paramsObject.response_type.length > 0 && paramsObject.client_id && paramsObject.client_id.length > 0) {
-				let authRequest={client_id:paramsObject.client_id,redirect_uri:paramsObject.redirect_uri,response_type:paramsObject.response_type,scope:paramsObject.scope,state:paramsObject.state}
-				// lookup oauth client extra label info
-				 if (that.props.startWaiting) that.props.startWaiting();
-				 fetch(that.props.loginServer+'/api/oauthclient?clientId='+paramsObject.client_id, {
-					  method: 'GET',
-					  headers: {
-						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+that.props.user.token.access_code
-					  }
-					}).then(this.checkStatus)
-				  .then(function(data) {
-					  return that.parseJSON(data) 
-				   })
-				  .then(function(data) {
-						if (that.props.stopWaiting) that.props.stopWaiting();
-						if (data.error) {
-							//console.log(data.error,data);
-							that.props.submitWarning(data.error);
-						} else {
-							authRequest.name = data.name;
-							authRequest.website_url = data.website_url;
-							authRequest.privacy_url = data.privacy_url;
-							authRequest.user = that.props.user ? that.props.user.username : '';
-							if (localStorage && localStorage.setItem) localStorage.setItem('auth_request',JSON.stringify(authRequest))
-							that.setState({authRequest: authRequest});
-							
-						}
-				  }).catch(function(error) {
-					console.log(['SIGN IN request failed', error])
-				  });
-				
-				
-			} else {
-				if (localStorage && localStorage.setItem)  {
-					let authRequest = localStorage.getItem('auth_request');
-					that.setState({authRequest: JSON.parse(authRequest)});						
-				}
-			}
-		}
+			//console.log(params)
+			
+			
+			var axiosClient = getAxiosClient()
+            axiosClient.get(this.props.loginServer + '/api/oauthclientspublic').then(function(results) {
+			  
+				that.createAuthRequest(paramsObject,results)
+
+		   })
+			
 	}
 
-
+  
+    createAuthRequest(paramsObject,results) {
+		//console.log(['CAR',paramsObject,results])
+		let that = this
+		var clientsIndex = {}
+		var client = null
+		// prep index
+		if (results && results.data && Array.isArray(results.data)) {
+			results.data.forEach(function(c) {
+				if (c.clientId) clientsIndex[c.clientId] = c;
+			})
+		}
+		// by parameter
+		if (paramsObject.client && clientsIndex[paramsObject.clientId]) {
+			client = clientsIndex[paramsObject.clientId]
+			that.setState({'clients':results, client: client})
+		// fall back to first
+		} else if (results.data && results.data && results.data.length > 0) {
+			client = results.data[0]
+			that.setState({'clients':results, client: client})
+		} 
+		
+		//var redirectUri = paramsObject.redirect_uri ? paramsObject.redirect_uri : 
+		var firstRedirect = (client && Array.isArray(client.redirectUris) && client.redirectUris.length > 0) ? client.redirectUris[0] : ''
+		
+		var authRequest =  {
+			redirect_uri: paramsObject.redirect_uri ? paramsObject.redirect_uri : firstRedirect,
+			clientId: paramsObject.clientId ? paramsObject.clientId : client.clientId,
+			clientSecret: paramsObject.clientSecret ? paramsObject.clientSecret : client.clientSecret,
+			scope: paramsObject.scope ? paramsObject.scope : client.scope,
+			state: paramsObject.state ? paramsObject.state : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+		}
+		//console.log({authRequest:authRequest})
+		that.setState({authRequest:authRequest})
+		localStorage.setItem('auth_request',JSON.stringify(authRequest))
+	}
+  
     // xhr processing chain
     checkStatus(response) {
       if (response.status >= 200 && response.status < 300) {
@@ -111,59 +144,56 @@ export default  class OAuth extends Component {
     
     render() {
 		let that = this
-		return <div>
-		{this.state.authRequest && 
-			<div className='row'>
-			<h1>Authorize {this.state.authRequest.name}</h1>
+		
+		if (this.state.client && this.props.isLoggedIn()) {
+			var redirectUri = ''
+			// use first configured redirect
+			if (Array.isArray(this.state.client.redirectUris) && this.state.client.redirectUris.length > 0) redirectUri = this.state.client.redirectUris[0]
+			return <div>
+			<img src={this.state.client.clientImage} style={{height:'120px'}}  />
+			<Link to={this.props.linkBase + '/profile'} ><div style={{float:'right', marginLeft:'1em'}}  className='btn btn-warning' >Signed in as {this.props.user ? this.props.user.avatar : ''}</div></Link>
 			
-			<div>Do you want to allow {this.state.authRequest.name} to login {this.props.user ? ' as '+ this.props.user.name : ''}?<br/></div>
-			<br/>
-			<br/>
-			<div style={{fontSize:'1.2em', width:'100%',clear:'both'}} >
-				<a target='_new' style={{float:'left'}}  href={this.state.authRequest.website_url} >Website</a>
-				<a target='_new' style={{float:'right'}} href={this.state.authRequest.privacy_url} >Privacy Policy</a>
-			</div>
-         
-         <br/>
-			
-			<div style={{ width: '100%',fontSize:'0.8em', padding: '0.2em', border: '1px solid grey', textAlign:'left'}} >Authorization will allow {this.state.authRequest.name} to<br/>
-			
-			<ul style={{ marginLeft: '-1em'}} >
-				<li>See your name and email address</li>
-				<li>Interact with this website on your behalf</li>
-			</ul>
-						
+			<h1>{this.state.client.name}</h1>
+			{this.state.client.by && <div style={{fontWeight:'bold',float:'right'}} >by {this.state.client.by}</div>}
+			{this.state.client.clientWebsite && <div>{this.state.client.clientWebsite}</div>}
+			<h3 style={{clear:'both'}} >This app would like to:</h3>
+			<hr/>
+			<div>View your name and email address.</div>
+			<hr/>
 			<form  style={{width:'100%'}}  action={that.props.loginServer+'/api/authorize'} method="POST">
-			<input type='hidden' name='response_type'  value={this.state.authRequest.response_type} />
-			<input type='hidden' name='client_id'  value={this.state.authRequest.client_id}/>
-			<input type='hidden' name='client_secret'  value={this.state.authRequest.client_secret}/>
-			<input type='hidden' name='redirect_uri'  value={this.state.authRequest.redirect_uri}/>
-			<input type='hidden' name='scope'  value={this.state.authRequest.scope}/>
-			<input type='hidden' name='state'  value={this.state.authRequest.state}/>
+			<input type='hidden' name='response_type'  value='code' />
+			<input type='hidden' name='client_id'  value={this.state.authRequest ? this.state.authRequest.clientId : ''}/>
+			<input type='hidden' name='client_secret'  value={this.state.authRequest ? this.state.authRequest.clientSecret : ''}/>
+			<input type='hidden' name='redirect_uri'  value={this.state.authRequest ? this.state.authRequest.redirect_uri : ''}/>
+			<input type='hidden' name='state'  value={this.state.authRequest ? this.state.authRequest.state : ''}/>
 			<input type='hidden' name='access_token'  value={this.props.user && this.props.user.token ? this.props.user.token.access_token : ''}/>
 			<div style={{fontSize:'1.1em', clear:'both', width: '100%'}} className='row' >
 				<div className='col-6' >
-				<button  id="accept_oauth_button" type='submit' style={{color: 'black', width:'100%', fontWeight: 'bold'}}  className='btn btn-block btn-lg  btn-success'  ><img src={tickImage} style={{marginRight: '0.2em', height: '1.2em'}} alt="Yes" />&nbsp;Yes</button>
+				<button  id="accept_oauth_button" onClick={this.approveAuthRequest} type='submit' style={{color: 'black', width:'100%', fontWeight: 'bold'}}  className='btn btn-block btn-lg  btn-success'  >&nbsp;Yes</button>
 				</div>
 				<div className='col-6' >
-				<button  id="deny_oauth_button" style={{color: 'black', width:'100%', fontWeight: 'bold'}} className='btn  btn-block btn-lg  btn-danger' onClick={this.cancelAuthRequest} ><img src={crossImage} style={{marginRight: '0.2em', height: '1.2em'}} alt="No"  />&nbsp;No</button>
+				<button  id="deny_oauth_button" style={{color: 'black', width:'100%', fontWeight: 'bold'}} className='btn  btn-block btn-lg  btn-danger' onClick={this.cancelAuthRequest} >&nbsp;No</button>
 				</div>
 			</div>
 			</form>
-
-            
-			</div>
-			<br/>
-			<br/>
-			<br/>
-			
 			
 			</div>
-			
-			
+		} else if (this.state.client) {
+			return <div>
+				{this.state.client.by && <div style={{fontWeight:'bold',float:'right'}} >by {this.state.client.by}</div>}
+				<h1>{this.state.client.name}</h1>
+				{this.state.client.clientWebsite && <div>{this.state.client.clientWebsite}</div>}
+				<h3 style={{clear:'both'}} >This app would like to:</h3>
+				<hr/>
+				<div>View your name and email address.</div>
+				<hr/>
+				<Login {...this.props} />
+			</div>
+		} else {
+			return <div>Loading</div>
 		}
-         </div>
+		
           
     };
 }
- 
+
