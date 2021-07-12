@@ -90,7 +90,7 @@ function createClients(config, database) {
 							redirectUris:clientConfig.redirectUris,
 							clientImage:clientConfig.clientImage
 						};
-						//console.log(clientFields)
+						console.log(clientFields)
 						if (result!= null) {
 							// OK
 							console.log('CREATE push update');
@@ -142,13 +142,13 @@ describe( "forgot password", () => {
 		await bs.teardown();
 	});
 
-//	afterEach(async () => services ? await services.dbHandler.clearDatabase() : null);
+	afterEach(async () => services ? await services.dbHandler.clearDatabase() : null);
 
 	beforeEach(async () => {
 		await services.dbHandler.clearDatabase()
-		await createClients(config,services.database)
-		var clients =await services.database.OAuthClient.find({})
-		console.log(['CLIENTs',clients])
+		await createClients(config, services.database)
+		var clients = await services.database.OAuthClient.find({})
+		console.log(['CLIENTs BE',clients])
 		//console.log(['CREATE CLIENT',config.oauthClients[0]])
 		//var clients = await services.database.OAuthClient.deleteMany({})
 		//var clientConfig = config.oauthClients[0]
