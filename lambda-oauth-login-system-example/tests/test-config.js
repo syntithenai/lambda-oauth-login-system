@@ -46,9 +46,9 @@ module.exports = {
    // local oauth server
    // todo allow for many clients - alexa, google, local... FORNOW create extra records
    oauthClients: [ {
+	   clientName:'test client',
 	   clientId:'test',
 	   clientSecret:'testpass',
-	   clientName:'test client',
 	   redirectUris: ['https://localhost:5101/dev/handler','https://localhost:5100/dev/login'],
 	   clientBy:'test corporation',
 	   clientWebsite:'http://localhost',

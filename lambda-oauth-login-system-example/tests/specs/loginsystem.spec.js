@@ -73,7 +73,7 @@ bs.TARGETS[ "SIGNIN_BUTTON" ] = async () => await bs.query( "#register_button", 
 bs.TARGETS[ "LOGOUT_BUTTON" ] = async () => await bs.query( "#nav_logout_button", true, "LOGOUT_BUTTON" );
 
 function createClients(config, database) {
-	//console.log(['CREATE AUTH CLIENTS',config.oauthClients])
+	console.log(['CREATE AUTH CLIENTS',config.oauthClients])
 	return new Promise(function(resolve,reject) {
 		database.OAuthClient.deleteMany().then(function() {
 			var promises = []
