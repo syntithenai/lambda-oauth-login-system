@@ -92,10 +92,10 @@ function createClients(config, database) {
 					//console.log(clientFields)
 					if (result!= null) {
 						// OK
-						//console.log('CREATE push update');
+						console.log('CREATE push update');
 						promises.push(database.OAuthClient.update({clientId:clientConfig.clientId},clientFields))
 					} else {
-						//console.log('CREATE push save');
+						console.log('CREATE push save');
 						let client = new database.OAuthClient(clientFields);
 						promises.push(client.save())
 					}
@@ -146,7 +146,7 @@ describe( "forgot password", () => {
 	beforeEach(async () => {
 		await createClients(config,services.database)
 		var clients =await services.database.OAuthClient.find({})
-		//console.log(['CLIENTs',clients])
+		console.log(['CLIENTs',clients])
 		//console.log(['CREATE CLIENT',config.oauthClients[0]])
 		//var clients = await services.database.OAuthClient.deleteMany({})
 		//var clientConfig = config.oauthClients[0]
@@ -337,7 +337,7 @@ describe( "forgot password", () => {
 			//var authRequestOld = await bs.page.evaluate(() => localStorage.getItem("auth_request"));
 			//console.log(ls)
 			//console.log(authRequest)
-			//console.log(authRequestOld)
+			// console.log(authRequestOld)
 		});
 
 	  });
