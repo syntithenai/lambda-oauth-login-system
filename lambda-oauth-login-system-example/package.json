@@ -11,7 +11,7 @@
   "cross-env": "^7.0.3",
   "dotenv": "^8.2.0",
   "express": "^4.17.1",
-  "express-oauth-login-system-server": "^1.0.13",
+  "express-oauth-login-system-server": "^1.1.0",
   "express-restify-mongoose": "^6.1.2",
   "faker": "^5.5.3",
   "fs-extra": "^10.0.0",
