@@ -84,7 +84,7 @@ function createClients(config, database) {
 						let clientFields = 	{
 							clientId: clientConfig.clientId, 
 							clientSecret:clientConfig.clientSecret,
-							clientName:clientConfig.clientName,
+							clientName:'the test client',
 							clientBy:clientConfig.clientBy,
 							website_url:clientConfig.clientWebsite,
 							redirectUris:clientConfig.redirectUris,
