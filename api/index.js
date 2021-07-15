@@ -1,7 +1,7 @@
 const express = require('express')
 const https = require('https')
 const fs = require('fs')
-const cors = require('cors')
+//const cors = require('cors')
 const bodyParser = require('body-parser')
 const methodOverride = require('method-override')
 const loginSystem = require('express-oauth-login-system-server')
@@ -21,8 +21,9 @@ var template = ''
 loginSystem(config).then(function(login) {
 	const loginRouter = login.router
 	const authenticate = login.authenticate
-	app.use('/dev/login/api/', cors(),loginRouter)
-	app.use('/dev/login', cors(),function (req,res) {
+	//, cors()
+	app.use('/dev/login/api/',loginRouter)
+	app.use('/dev/login',function (req,res) {
 		if (!template.trim()) {
 			// serve compressed build file that uses LoginSystemContext
 			template = String(fs.readFileSync(path.join(__dirname,'./build', 'index.html')))
