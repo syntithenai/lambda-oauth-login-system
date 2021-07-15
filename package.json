@@ -1,6 +1,6 @@
 {
   "name": "lambda-oauth-login-system",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This repository provides a web based login system that can be deployed to AWS Lambda.",
   "main": " ",
   "scripts": {
