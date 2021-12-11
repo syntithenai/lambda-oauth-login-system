@@ -336,7 +336,7 @@ export default class ExternalLogin   extends Component {
 		this.loginPopup = null
 		try {
 			this.loginPopup = window.open(url,'mywin','resizable=no, scrollbars=no, status=no, width=10,height=10, top: 0, left:'+window.screen.availHeight+10);
-			if(!newWin || newWin.closed || typeof newWin.closed=='undefined') { 
+			if(!this.loginPopup || this.loginPopup.closed || typeof this.loginPopup.closed=='undefined') { 
 				// blocked
 			} else {
 				that.checkIsLoggedIn(this.loginPopup)

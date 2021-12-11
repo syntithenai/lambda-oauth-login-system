@@ -40,13 +40,14 @@ module.exports = {
     script: 'index.js',
     watch: ['./index.js']
   }
-  , 
-  {
-    name: 'exampleUI',
-    cwd: './lambda-oauth-login-system-example/react-login-example',
-    script: 'npm start',
-    watch: ['./index.js']
-  }
+  ////// LIVE LOADING FRONT END
+  //, 
+  //{
+    //name: 'exampleUI',
+    //cwd: './lambda-oauth-login-system-example/react-login-example',
+    //script: 'npm start',
+    //watch: ['./index.js']
+  //}
   
   ]
 };

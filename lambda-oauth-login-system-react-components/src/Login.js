@@ -48,37 +48,37 @@ export default  class Login extends Component {
     componentDidUpdate(props) {
 		let that = this
 		//console.log('UPD')
-        if (!this.state.clients && !this.state.loadingClients) {
-		   this.setState({loadingClients: true})
-		   //console.log(['UPD IUSER',this.props.user])
-           var axiosClient = getAxiosClient()
-           axiosClient.get(this.props.loginServer + '/api/oauthclientspublic').then(function(results) {
-			   //console.log('loaded clients')
-			   //console.log(results)
-			   let params = that.props.location.search ? that.props.location.search.slice(1).split("&") : [];
-				let paramsObject = {};
-				params.map(function(keyAndData) {
-					let parts = keyAndData.split("=");
-					if (parts.length === 2) {
-						paramsObject[parts[0]] = parts[1]
-					}
-					return null;
-				})
-				var clientsIndex = {}
-				if (results && results.data && Array.isArray(results.data)) {
-					results.data.forEach(function(client) {
-						if (client.clientId) clientsIndex[client.clientId] = client;
-					})
-				}
-				//console.log([paramsObject,clientsIndex])
-				if (paramsObject.clientId && clientsIndex[paramsObject.clientId]) {
-					that.setState({'clients':results, loadingClients: false, client: clientsIndex[paramsObject.clientId]})
-				} else if (results.data && results.data && results.data.length > 0) {
-					that.setState({'clients':results, loadingClients: false, client: results.data[0]})
-				} 
-		   })
-           //this.props.history.push(this.props.linkBase + "/login");
-       }
+        //if (!this.state.clients && !this.state.loadingClients) {
+		   //this.setState({loadingClients: true})
+		   ////console.log(['UPD IUSER',this.props.user])
+           //var axiosClient = getAxiosClient()
+           //axiosClient.get(this.props.loginServer + '/api/oauthclientspublic').then(function(results) {
+			   ////console.log('loaded clients')
+			   ////console.log(results)
+			    //let params = that.props.location.search ? that.props.location.search.slice(1).split("&") : [];
+				//let paramsObject = {};
+				//params.map(function(keyAndData) {
+					//let parts = keyAndData.split("=");
+					//if (parts.length === 2) {
+						//paramsObject[parts[0]] = parts[1]
+					//}
+					//return null;
+				//})
+				//var clientsIndex = {}
+				//if (results && results.data && Array.isArray(results.data)) {
+					//results.data.forEach(function(client) {
+						//if (client.clientId) clientsIndex[client.clientId] = client;
+					//})
+				//}
+				////console.log([paramsObject,clientsIndex])
+				//if (paramsObject.clientId && clientsIndex[paramsObject.clientId]) {
+					//that.setState({'clients':results, loadingClients: false, client: clientsIndex[paramsObject.clientId]})
+				//} else if (results.data && results.data && results.data.length > 0) {
+					//that.setState({'clients':results, loadingClients: false, client: results.data[0]})
+				//} 
+		   //})
+           ////this.props.history.push(this.props.linkBase + "/login");
+       //}
     };
     
     startOauthFlow(url) {
